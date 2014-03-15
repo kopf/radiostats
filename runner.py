@@ -2,6 +2,9 @@ from datetime import datetime, timedelta
 import HTMLParser
 import logbook
 
+import gevent.monkey
+gevent.monkey.patch_socket()
+import gevent
 import MySQLdb
 
 from scrapers import SWR1BWScraper, SWR3Scraper
@@ -94,6 +97,8 @@ class GenericRunner(object):
 
 
 if __name__ == '__main__':
+    threads = []
     for station_name in SCRAPERS:
         runner = GenericRunner(station_name)
-        runner.run()
+        threads.append(gevent.spawn(runner.run))
+    gevent.joinall(threads)
