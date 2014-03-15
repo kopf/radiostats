@@ -9,7 +9,7 @@ from scrapers import SWR1BWScraper, SWR3Scraper
 SCRAPERS = {
     'SWR1-BW': {
         'cls': SWR1BWScraper,
-        'start_date': '20140224'
+        'start_date': '20140213'
     },
     'SWR3': {
         'cls': SWR3Scraper,
@@ -48,7 +48,9 @@ class GenericRunner(object):
                 continue
 
             end_reached = False
-            for track in self.scraper.tracks:
+            # Add all unique tracks: we need to make a set as sometimes
+            # tracks are duplicated on the website by accident
+            for track in list(set(self.scraper.tracks)):
                 try:
                     self.add_to_db(track)
                 except Exception as e:
@@ -65,8 +67,8 @@ class GenericRunner(object):
                 return
 
     def add_to_db(self, track):
-        artist = self.htmlparser.unescape(track[0])
-        title = self.htmlparser.unescape(track[1])
+        artist = self.htmlparser.unescape(track[0])[:128]
+        title = self.htmlparser.unescape(track[1])[:256]
         time_played = track[2]
         sql = u'insert into songs (time_played, station_name, artist, title) values ("{0}", "{1}", "{2}", "{3}");'
         sql = sql.format(time_played.strftime('%Y-%m-%d %H:%M:%S'),
@@ -76,7 +78,11 @@ class GenericRunner(object):
     def get_latest_date_from_db(self):
         sql = u'select time_played from songs where station_name="{0}" order by time_played desc limit 1;'
         self.db.execute(sql.format(self.station_name))
-        return self.db.fetchone()
+        try:
+            row = self.db.fetchone()[0]
+        except TypeError:
+            row = None
+        return row
 
     @property
     def date_range(self):
