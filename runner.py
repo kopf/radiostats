@@ -88,5 +88,6 @@ class GenericRunner(object):
 
 
 if __name__ == '__main__':
-    runner = GenericRunner('SWR1-BW')
-    runner.run()
+    for station_name in SCRAPERS:
+        runner = GenericRunner(station_name)
+        runner.run()
