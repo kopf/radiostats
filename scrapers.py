@@ -50,7 +50,7 @@ class SWR1BWScraper(GenericScraper):
             except AttributeError:
                 title = elements[i].text
             time_played = self.time_to_datetime(time_tag.text, '.')
-            tracks.append((artist, title, time_played))
+            self.tracks.append((artist, title, time_played))
             i += 2
 
     def scrape(self):

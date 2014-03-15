@@ -1,19 +1,10 @@
 from datetime import datetime, timedelta
+import HTMLParser
 import logbook
 
-import _mysql
+import MySQLdb
 
 from scrapers import SWR1BWScraper, SWR3Scraper
-
-
-##
-# NOTES
-#
-# * Don't forget to HTMLDecode text
-# * 
-# * Runner: object that runs through individual dates
-# * Scraper: Scrapes hours from a date, tracks from an hour
-# * Split artists by ';' ?
 
 SCRAPERS = {
     'SWR1-BW': {
@@ -38,14 +29,17 @@ def create_date_range(from_date):
 class GenericRunner(object):
     def __init__(self, station_name):
         self.station_name = station_name
-        self.db=_mysql.connect(host='192.168.92.20', user='radiostats',
-                               passwd='r4diostats', db='radiostats')
+        self.db_conn = MySQLdb.connect(
+            '192.168.92.20', 'radiostats', 'r4diostats', 'radiostats',
+            use_unicode=True, charset='utf8')
+        self.db = self.db_conn.cursor()
+        self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
         for date in self.date_range:
             self.scraper = SCRAPERS[self.station_name]['cls'](date)
             log.info('Scraping {0} for date {1}...'.format(
-                self.station_name, date))
+                self.station_name, date.strftime('%Y-%m-%d')))
             try:
                 self.scraper.scrape()
             except LookupError:
@@ -66,31 +60,29 @@ class GenericRunner(object):
                         continue
                     else:
                         raise e
+            self.db_conn.commit()
             if end_reached:
                 return
 
     def add_to_db(self, track):
-        artist = track[0]
-        title = track[1]
+        artist = self.htmlparser.unescape(track[0])
+        title = self.htmlparser.unescape(track[1])
         time_played = track[2]
-        sql = 'insert into songs (time_played, station_name, artist, title) values ("{0}", "{1}", "{2}", "{3}");'
-        self.db.query(sql.format(time_played.strftime('%Y-%m-%d %H:%M:%S'),
-                                 self.station_name, artist, title))
-        return self.db.store_result()
+        sql = u'insert into songs (time_played, station_name, artist, title) values ("{0}", "{1}", "{2}", "{3}");'
+        sql = sql.format(time_played.strftime('%Y-%m-%d %H:%M:%S'),
+                                 self.station_name, artist, title)
+        self.db.execute(sql)
 
     def get_latest_date_from_db(self):
-        sql = 'select time_played from songs where station_name="{0}" order by time_played desc limit 1;'
-        self.db.query(sql.format(self.station_name))
-        r = self.db.store_result()
-        return [x[0] for x in r.fetch_row(maxrows=0)]
+        sql = u'select time_played from songs where station_name="{0}" order by time_played desc limit 1;'
+        self.db.execute(sql.format(self.station_name))
+        return self.db.fetchone()
 
     @property
     def date_range(self):
         """A list of dates to be processed"""
         latest = self.get_latest_date_from_db()
-        if latest:
-            latest = datetime.strptime(latest[0], '%Y-%m-%d %H:%M:%S')
-        else:
+        if not latest:
             latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
         return create_date_range(latest)
 
