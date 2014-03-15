@@ -83,11 +83,21 @@ class SWR3Scraper(GenericScraper):
         artists = artist_str.split('; ')
         for artist in artists:
             if ', ' in artist:
-                last_name, first_name = artist.split(', ')
-                retval.append(u'{0} {1}'.format(first_name, last_name))
+                try:
+                    last_name, first_name = [name.strip() for name in artist.split(', ')]
+                    name = u'{0} {1}'.format(first_name, last_name)
+                except ValueError as e:
+                    # probably dealing with something like "Pausini, Laura, Blunt, James"
+                    names = [name.strip() for name in artist.split(', ')]
+                    if len(names) == 4:
+                        name = u'{0} {1}; {2} {3}'.format(
+                            names[1], names[0], names[3], names[2])
+                    else:
+                        raise e
+                retval.append(name)
             else:
                 retval.append(artist)
-        return u';'.join(retval)
+        return u'; '.join([name.strip() for name in retval])
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of 
@@ -98,9 +108,12 @@ class SWR3Scraper(GenericScraper):
             elements = row.findAll('td')
             if not elements:
                 continue
-            self.tracks.append((self.process_artist(elements[0].text),
-                                elements[1].text,
-                                self.time_to_datetime(elements[2].text, ':')))
+            try:
+                self.tracks.append((self.process_artist(elements[0].text),
+                                    elements[1].text,
+                                    self.time_to_datetime(elements[2].text, ':')))
+            except ValueError:
+                log.error('Error occurred on {0} - skipping...'.format(elements))
 
     def scrape(self):
         for url in self.tracklist_urls:

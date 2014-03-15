@@ -50,7 +50,7 @@ class GenericRunner(object):
                 log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
                 continue
 
-            end_reached = False
+            added_already = 0
             # Add all unique tracks: we need to make a set as sometimes
             # tracks are duplicated on the website by accident
             for track in list(set(self.scraper.tracks)):
@@ -60,15 +60,14 @@ class GenericRunner(object):
                     if e[0] == 1062:
                         # We're encountering tracks we've already added.
                         # Keep trying to add tracks for this date, but
-                        # don't proceed with processing further dates.
-                        end_reached = True
-                        log.debug('Detecting end reached on {0} with {1}'.format(
-                            self.station_name, track))
+                        # don't proceed with processing further dates if
+                        # all tracks for this date were already added.
+                        added_already += 1
                         continue
                     else:
                         raise e
             self.db_conn.commit()
-            if end_reached:
+            if added_already == len(self.scraper.tracks):
                 log.info('End reached for {0} at {1}. Stopping...'.format(
                     self.station_name, date))
                 return
