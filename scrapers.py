@@ -43,11 +43,14 @@ class SWR1BWScraper(GenericScraper):
         elements = main_div.findAll(
             'p', {'class': ['sendezeitrl', 'songtitel']})
         i = 1
-        print elements
         for time_tag in elements[::2]:
-            print time_tag
-            self.tracks.append(
-                (elements[i].span.text, elements[i].a.text, self.time_to_datetime(time_tag.text, '.')))
+            artist = elements[i].span.text
+            try:
+                title = elements[i].a.text
+            except AttributeError:
+                title = elements[i].text
+            time_played = self.time_to_datetime(time_tag.text, '.')
+            tracks.append((artist, title, time_played))
             i += 2
 
     def scrape(self):
