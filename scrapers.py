@@ -26,7 +26,7 @@ class GenericScraper(object):
         return self.date.replace(hour=hour, minute=minute, second=second)
 
 
-class SWR1BWScraper(GenericScraper):
+class SWR1Scraper(GenericScraper):
     base_url = ('http://www.swr.de/swr1/bw/musik/musikrecherche/-/id=446260'
                 '/8biejp/index.html')
 
@@ -84,7 +84,7 @@ class SWR3Scraper(GenericScraper):
         for artist in artists:
             if ', ' in artist:
                 last_name, first_name = artist.split(', ')
-                retval.append('{0} {1}'.format(first_name, last_name))
+                retval.append(u'{0} {1}'.format(first_name, last_name))
             else:
                 retval.append(artist)
         return '; '.join(retval)

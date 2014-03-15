@@ -7,11 +7,11 @@ gevent.monkey.patch_socket()
 import gevent
 import MySQLdb
 
-from scrapers import SWR1BWScraper, SWR3Scraper
+from scrapers import SWR1Scraper, SWR3Scraper
 
 SCRAPERS = {
-    'SWR1-BW': {
-        'cls': SWR1BWScraper,
+    'SWR1': {
+        'cls': SWR1Scraper,
         'start_date': '20140213'
     },
     'SWR3': {
@@ -62,6 +62,8 @@ class GenericRunner(object):
                         # Keep trying to add tracks for this date, but
                         # don't proceed with processing further dates.
                         end_reached = True
+                        log.debug('Detecting end reached on {0} with {1}'.format(
+                            self.station_name, track))
                         continue
                     else:
                         raise e
