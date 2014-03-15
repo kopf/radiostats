@@ -1,3 +1,5 @@
+import time
+
 from BeautifulSoup import BeautifulSoup
 import logbook
 import requests
@@ -13,6 +15,42 @@ class GenericScraper(object):
     def scrape(self):
         """Scrape tracks for a single date"""
         raise NotImplementedError
+
+    def http_get(self, url, retries=10):
+        """Wrapper for requests.get for retries"""
+        if retries:
+            try:
+                retval = requests.get(url)
+            except Exception as e:
+                time.sleep(1)
+                return self.http_get(url, retries=retries-1)
+            finally:
+                return retval
+        else:
+            return requests.get(url)
+
+    def process_artist(self, artist_str):
+        retval = []
+        if '(feat' in artist_str.lower():
+            artist_str = artist_str[:artist_str.lower().index('(feat')].strip()
+        artists = artist_str.split('; ')
+        for artist in artists:
+            if ', ' in artist:
+                try:
+                    last_name, first_name = [name.strip() for name in artist.split(', ')]
+                    name = u'{0} {1}'.format(first_name, last_name)
+                except ValueError as e:
+                    # probably dealing with something like "Pausini, Laura, Blunt, James"
+                    names = [name.strip() for name in artist.split(', ')]
+                    if len(names) == 4:
+                        name = u'{0} {1}; {2} {3}'.format(
+                            names[1], names[0], names[3], names[2])
+                    else:
+                        raise e
+                retval.append(name)
+            else:
+                retval.append(artist)
+        return u'; '.join([name.strip() for name in retval])
 
     def time_to_datetime(self, text_time, split_char):
         """Transform a text representation of time into a datetime"""
@@ -44,7 +82,7 @@ class SWR1Scraper(GenericScraper):
             'p', {'class': ['sendezeitrl', 'songtitel']})
         i = 1
         for time_tag in elements[::2]:
-            artist = elements[i].span.text
+            artist = self.process_artist(elements[i].span.text)
             try:
                 title = elements[i].a.text
             except AttributeError:
@@ -54,15 +92,15 @@ class SWR1Scraper(GenericScraper):
             i += 2
 
     def scrape(self):
-        resp = requests.get(self.base_url)
+        resp = self.http_get(self.base_url)
         soup = BeautifulSoup(resp.text)
         date_links = soup.findAll('a', {'class': 'pgcalendarblue'})
         for url in [tag['href'] for tag in date_links]:
             if 'date={0}'.format(self.date.strftime('%Y%m%d')) in url:
-                resp = requests.get(url)
+                resp = self.http_get(url)
                 self.soup = BeautifulSoup(resp.text)
                 for tracklist_url in self.tracklist_urls:
-                    resp = requests.get(tracklist_url)
+                    resp = self.http_get(tracklist_url)
                     self.soup = BeautifulSoup(resp.text)
                     self.extract_tracks()
                 return
@@ -77,27 +115,6 @@ class SWR3Scraper(GenericScraper):
     @property
     def tracklist_urls(self):
         return [self.base_url.format(hour=i, date=self.date.strftime('%Y%m%d')) for i in range(24)]
-
-    def process_artist(self, artist_str):
-        retval = []
-        artists = artist_str.split('; ')
-        for artist in artists:
-            if ', ' in artist:
-                try:
-                    last_name, first_name = [name.strip() for name in artist.split(', ')]
-                    name = u'{0} {1}'.format(first_name, last_name)
-                except ValueError as e:
-                    # probably dealing with something like "Pausini, Laura, Blunt, James"
-                    names = [name.strip() for name in artist.split(', ')]
-                    if len(names) == 4:
-                        name = u'{0} {1}; {2} {3}'.format(
-                            names[1], names[0], names[3], names[2])
-                    else:
-                        raise e
-                retval.append(name)
-            else:
-                retval.append(artist)
-        return u'; '.join([name.strip() for name in retval])
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of 
@@ -117,7 +134,7 @@ class SWR3Scraper(GenericScraper):
 
     def scrape(self):
         for url in self.tracklist_urls:
-            resp = requests.get(url)
+            resp = self.http_get(url)
             self.soup = BeautifulSoup(resp.text)
             self.extract_tracks()
 
