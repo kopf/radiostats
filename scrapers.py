@@ -1,4 +1,6 @@
+from BeautifulSoup import BeautifulSoup
 import logbook
+import requests
 
 log = logbook.Logger()
 
@@ -6,6 +8,7 @@ log = logbook.Logger()
 class GenericScraper(object):
     def __init__(self, date):
         self.date = date
+        self.tracks = []
 
     def scrape(self):
         """Scrape tracks for a single date"""
@@ -14,10 +17,10 @@ class GenericScraper(object):
     def time_to_datetime(self, text_time, split_char):
         """Transform a text representation of time into a datetime"""
         text_time = text_time.split(split_char)
-        hour = text_time[0]
-        minute = text_time[1]
+        hour = int(text_time[0])
+        minute = int(text_time[1])
         try:
-            second = text_time[2]
+            second = int(text_time[2])
         except IndexError:
             second = 0
         return self.date.replace(hour=hour, minute=minute, second=second)
@@ -26,7 +29,6 @@ class GenericScraper(object):
 class SWR1BWScraper(GenericScraper):
     base_url = ('http://www.swr.de/swr1/bw/musik/musikrecherche/-/id=446260'
                 '/8biejp/index.html')
-    start_date = '20140224'
 
     @property
     def tracklist_urls(self):
@@ -41,9 +43,11 @@ class SWR1BWScraper(GenericScraper):
         elements = main_div.findAll(
             'p', {'class': ['sendezeitrl', 'songtitel']})
         i = 1
+        print elements
         for time_tag in elements[::2]:
+            print time_tag
             self.tracks.append(
-                (elements[i].span.text, elements[i].a.text, self.time_to_datetime(time_tag, '.')))
+                (elements[i].span.text, elements[i].a.text, self.time_to_datetime(time_tag.text, '.')))
             i += 2
 
     def scrape(self):
@@ -54,7 +58,10 @@ class SWR1BWScraper(GenericScraper):
             if 'date={0}'.format(self.date.strftime('%Y%m%d')) in url:
                 resp = requests.get(url)
                 self.soup = BeautifulSoup(resp.text)
-                self.extract_tracks()
+                for tracklist_url in self.tracklist_urls:
+                    resp = requests.get(tracklist_url)
+                    self.soup = BeautifulSoup(resp.text)
+                    self.extract_tracks()
                 return
         raise LookupError
 
@@ -63,7 +70,6 @@ class SWR3Scraper(GenericScraper):
     base_url = ('http://www.swr3.de/musik/playlisten/Musikrecherche-Playlist-Was-lief'
                 '-wann-auf-SWR3/-/id=47424/cf=42/did=65794/93avs/index.html'
                 '?hour={hour}&date={date}')
-    start_date = '20130301'
 
     @property
     def tracklist_urls(self):

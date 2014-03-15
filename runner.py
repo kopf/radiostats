@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logbook
 
 import _mysql
@@ -16,8 +16,14 @@ from scrapers import SWR1BWScraper, SWR3Scraper
 # * Split artists by ';' ?
 
 SCRAPERS = {
-    'SWR1-BW': SWR1BWScraper,
-    'SWR3': SWR3Scraper
+    'SWR1-BW': {
+        'cls': SWR1BWScraper,
+        'start_date': '20140224'
+    },
+    'SWR3': {
+        'cls': SWR3Scraper,
+        'start_date': '20130301'
+    }
 }
 
 log = logbook.Logger()
@@ -25,8 +31,9 @@ log = logbook.Logger()
 
 def create_date_range(from_date):
     now = datetime.now()
-    return [from_date + datetime.timedelta(days=x) for x in range(0,(now-from_date).days)]
-
+    retval = [from_date + timedelta(days=x) for x in range(0,(now-from_date).days)]
+    retval.reverse()
+    return retval
 
 class GenericRunner(object):
     def __init__(self, station_name):
@@ -36,14 +43,14 @@ class GenericRunner(object):
 
     def run(self):
         for date in self.date_range:
-            self.scraper = SCRAPERS[self.station_name](date)
+            self.scraper = SCRAPERS[self.station_name]['cls'](date)
             log.info('Scraping {0} for date {1}...'.format(
                 self.station_name, date))
             try:
                 self.scraper.scrape()
             except LookupError:
-                    log.error('No data found for date {0} on {1}.'.format(
-                        date.strftime('%Y%m%d'), self.station_name))
+                msg = 'No data found for date {0} on {1}.'
+                log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
                 continue
 
             end_reached = False
@@ -80,9 +87,14 @@ class GenericRunner(object):
     @property
     def date_range(self):
         """A list of dates to be processed"""
-        latest = get_latest_from_db()
+        latest = self.get_latest_date_from_db()
         if latest:
             latest = datetime.strptime(latest[0], '%Y-%m-%d %H:%M:%S')
         else:
-            latest = datetime.strptime(self.scraper.start_date, '%Y%m%d')
+            latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
         return create_date_range(latest)
+
+
+if __name__ == '__main__':
+    runner = GenericRunner('SWR1-BW')
+    runner.run()
