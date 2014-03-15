@@ -87,7 +87,7 @@ class SWR3Scraper(GenericScraper):
                 retval.append(u'{0} {1}'.format(first_name, last_name))
             else:
                 retval.append(artist)
-        return '; '.join(retval)
+        return u';'.join(retval)
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of 
