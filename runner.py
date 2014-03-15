@@ -77,14 +77,12 @@ class GenericRunner(object):
         artist = self.htmlparser.unescape(track[0])[:128]
         title = self.htmlparser.unescape(track[1])[:256]
         time_played = track[2]
-        sql = u'insert into songs (time_played, station_name, artist, title) values ("{0}", "{1}", "{2}", "{3}");'
-        sql = sql.format(time_played.strftime('%Y-%m-%d %H:%M:%S'),
-                                 self.station_name, artist, title)
-        self.db.execute(sql)
+        sql = u'insert into songs (time_played, station_name, artist, title) values (%s, %s, %s, %s);'
+        self.db.execute(sql, (time_played, self.station_name, artist, title))
 
     def get_latest_date_from_db(self):
-        sql = u'select time_played from songs where station_name="{0}" order by time_played desc limit 1;'
-        self.db.execute(sql.format(self.station_name))
+        sql = u'select time_played from songs where station_name=%s order by time_played desc limit 1;'
+        self.db.execute(sql, (self.station_name))
         try:
             row = self.db.fetchone()[0]
         except TypeError:
