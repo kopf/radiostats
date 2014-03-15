@@ -67,6 +67,8 @@ class GenericRunner(object):
                         raise e
             self.db_conn.commit()
             if end_reached:
+                log.info('End reached for {0} at {1}. Stopping...'.format(
+                    self.station_name, date))
                 return
 
     def add_to_db(self, track):
