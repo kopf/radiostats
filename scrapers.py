@@ -84,7 +84,9 @@ class SWR3Scraper(GenericScraper):
         for artist in artists:
             if ', ' in artist:
                 last_name, first_name = artist.split(', ')
-            retval.append('{0} {1}'.format(first_name, last_name))
+                retval.append('{0} {1}'.format(first_name, last_name))
+            else:
+                retval.append(artist)
         return '; '.join(retval)
 
     def extract_tracks(self):
