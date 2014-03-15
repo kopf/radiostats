@@ -78,6 +78,15 @@ class SWR3Scraper(GenericScraper):
     def tracklist_urls(self):
         return [self.base_url.format(hour=i, date=self.date.strftime('%Y%m%d')) for i in range(24)]
 
+    def process_artist(self, artist_str):
+        retval = []
+        artists = artist_str.split('; ')
+        for artist in artists:
+            if ', ' in artist:
+                last_name, first_name = artist.split(', ')
+            retval.append('{0} {1}'.format(first_name, last_name))
+        return '; '.join(retval)
+
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of 
         (artist, title, time played) tuples
@@ -87,9 +96,9 @@ class SWR3Scraper(GenericScraper):
             elements = row.findAll('td')
             if not elements:
                 continue
-            self.tracks.append(
-                (elements[0].text, elements[1].text,
-                    self.time_to_datetime(elements[2].text, ':')))
+            self.tracks.append((self.process_artist(elements[0].text),
+                                elements[1].text,
+                                self.time_to_datetime(elements[2].text, ':')))
 
     def scrape(self):
         for url in self.tracklist_urls:
