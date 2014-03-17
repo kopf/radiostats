@@ -1,4 +1,6 @@
 import time
+import string
+import urllib
 
 from BeautifulSoup import BeautifulSoup
 import logbook
@@ -27,9 +29,25 @@ class GenericScraper(object):
             finally:
                 return retval
         else:
+            log.error('Exceeded number of retries getting {0}'.format(url))
             return requests.get(url)
 
-    def process_artist(self, artist_str):
+    def _find_most_popular(self, *args):
+        """Searches bing for certain strings and returns the most popular"""
+        winner = (0,)
+        url = ('http://www.bing.com/search?q={term}&go=&qs=n&form=QBLH&filt=all'
+               '&pq={term}&sc=0-0&sp=-1&sk=')
+        for artist_str in args:
+            url = url.format(term='"{0}"'.format(urllib.quote_plus(artist_str)))
+            resp = self.http_get(url)
+            soup = BeautifulSoup(resp.text)
+            tag = soup.find('span', {'id': 'count'})
+            digits = [n for n in soup.find('span', {'id': 'count'}).text if n in string.digits]
+            if digits > winner[0]:
+                winner = (digits, artist_str)
+        return winner[1]
+
+    def _process_artist(self, artist_str):
         retval = []
         if '(feat' in artist_str.lower():
             artist_str = artist_str[:artist_str.lower().index('(feat')].strip()
@@ -38,22 +56,23 @@ class GenericScraper(object):
             if ', ' in artist:
                 try:
                     last_name, first_name = [name.strip() for name in artist.split(', ')]
-                    name = u'{0} {1}'.format(first_name, last_name)
+                    new_name = u'{0} {1}'.format(first_name, last_name)
+                    retval.append(self._find_most_popular(new_name, artist))
                 except ValueError as e:
                     # probably dealing with something like "Pausini, Laura, Blunt, James"
-                    names = [name.strip() for name in artist.split(', ')]
                     if len(names) == 4:
-                        name = u'{0} {1}; {2} {3}'.format(
-                            names[1], names[0], names[3], names[2])
+                        names = [name.strip() for name in artist.split(', ')]
+                        new_names = [names[1], names[0], names[3], names[2]]
+                        retval.append(self._find_most_popular(' '.join(new_names[:2]), names[:2]))
+                        retval.append(self._find_most_popular(' '.join(new_names[2:4]), names[2:4]))
                     else:
                         raise e
-                retval.append(name)
             else:
                 retval.append(artist)
         return u'; '.join([name.strip() for name in retval])
 
     def time_to_datetime(self, text_time, split_char):
-        """Transform a text representation of time into a datetime"""
+        """Transform a text time into a datetime using appropriate date"""
         text_time = text_time.split(split_char)
         hour = int(text_time[0])
         minute = int(text_time[1])
@@ -82,7 +101,13 @@ class SWR1Scraper(GenericScraper):
             'p', {'class': ['sendezeitrl', 'songtitel']})
         i = 1
         for time_tag in elements[::2]:
-            artist = self.process_artist(elements[i].span.text)
+            try:
+                artist = self._process_artist(elements[i].span.text)
+            except Exception as e:
+                msg = "Couldn't parse artist '{0}'. Skipping..."
+                log.critical(msg.format(elements[i].span.text))
+                i += 2
+                continue
             try:
                 title = elements[i].a.text
             except AttributeError:
@@ -126,7 +151,7 @@ class SWR3Scraper(GenericScraper):
             if not elements:
                 continue
             try:
-                self.tracks.append((self.process_artist(elements[0].text),
+                self.tracks.append((self._process_artist(elements[0].text),
                                     elements[1].text,
                                     self.time_to_datetime(elements[2].text, ':')))
             except ValueError:
