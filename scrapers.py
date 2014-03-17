@@ -8,6 +8,9 @@ import requests
 
 log = logbook.Logger()
 
+USER_AGENT = ('Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 '
+              '(KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36')
+
 
 class GenericScraper(object):
     def __init__(self, date):
@@ -18,11 +21,11 @@ class GenericScraper(object):
         """Scrape tracks for a single date"""
         raise NotImplementedError
 
-    def http_get(self, url, retries=10):
+    def http_get(self, url, retries=10, user_agent=USER_AGENT):
         """Wrapper for requests.get for retries"""
         if retries:
             try:
-                retval = requests.get(url)
+                retval = requests.get(url, headers={'User-Agent': user_agent})
             except Exception as e:
                 time.sleep(1)
                 return self.http_get(url, retries=retries-1)
@@ -39,7 +42,7 @@ class GenericScraper(object):
                '&pq={term}&sc=0-0&sp=-1&sk=')
         for artist_str in args:
             url = url.format(term='"{0}"'.format(urllib.quote_plus(artist_str)))
-            resp = self.http_get(url)
+            resp = self.http_get(url, user_agent='')
             soup = BeautifulSoup(resp.text)
             tag = soup.find('span', {'id': 'count'})
             digits = [n for n in soup.find('span', {'id': 'count'}).text if n in string.digits]
