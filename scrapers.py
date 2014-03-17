@@ -1,3 +1,4 @@
+import HTMLParser
 import time
 import string
 import urllib
@@ -16,6 +17,7 @@ class GenericScraper(object):
     def __init__(self, date):
         self.date = date
         self.tracks = []
+        self.htmlparser = HTMLParser.HTMLParser()
 
     def scrape(self):
         """Scrape tracks for a single date"""
@@ -104,6 +106,7 @@ class SWR1Scraper(GenericScraper):
             'p', {'class': ['sendezeitrl', 'songtitel']})
         i = 1
         for time_tag in elements[::2]:
+            artist = self.htmlparser.unescape(elements[i].span.text)[:128]
             try:
                 artist = self._process_artist(elements[i].span.text)
             except Exception as e:
@@ -115,6 +118,7 @@ class SWR1Scraper(GenericScraper):
                 title = elements[i].a.text
             except AttributeError:
                 title = elements[i].text
+            title = self.htmlparser.unescape(title)[:256]
             time_played = self.time_to_datetime(time_tag.text, '.')
             self.tracks.append((artist, title, time_played))
             i += 2
@@ -154,9 +158,16 @@ class SWR3Scraper(GenericScraper):
             if not elements:
                 continue
             try:
-                self.tracks.append((self._process_artist(elements[0].text),
-                                    elements[1].text,
-                                    self.time_to_datetime(elements[2].text, ':')))
+                artist = self.htmlparser.unescape(elements[0].text)[:128]
+                try:
+                    artist = self._process_artist(artist)
+                except Exception as e:
+                    msg = "Couldn't parse artist '{0}'. Skipping..."
+                    log.critical(msg.format(artist))
+                    continue
+                title = self.htmlparser.unescape(elements[1].text)[:256]
+                self.tracks.append(
+                    (artist, title, self.time_to_datetime(elements[2].text, ':')))
             except ValueError:
                 log.error('Error occurred on {0} - skipping...'.format(elements))
 

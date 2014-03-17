@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from datetime import datetime, timedelta
-import HTMLParser
 import logbook
 
 import gevent.monkey
@@ -37,7 +36,6 @@ class GenericRunner(object):
             '192.168.92.20', 'radiostats', 'r4diostats', 'radiostats',
             use_unicode=True, charset='utf8')
         self.db = self.db_conn.cursor()
-        self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
         for date in self.date_range:
@@ -74,11 +72,8 @@ class GenericRunner(object):
                 return
 
     def add_to_db(self, track):
-        artist = self.htmlparser.unescape(track[0])[:128]
-        title = self.htmlparser.unescape(track[1])[:256]
-        time_played = track[2]
         sql = u'insert into songs (time_played, station_name, artist, title) values (%s, %s, %s, %s);'
-        self.db.execute(sql, (time_played, self.station_name, artist, title))
+        self.db.execute(sql, (track[2], self.station_name, track[0], track[1]))
 
     def get_latest_date_from_db(self):
         sql = u'select time_played from songs where station_name=%s order by time_played desc limit 1;'
