@@ -12,6 +12,8 @@ log = logbook.Logger()
 USER_AGENT = ('Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 '
               '(KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36')
 
+BING_CACHE = {}
+
 
 class GenericScraper(object):
     def __init__(self, date):
@@ -43,6 +45,8 @@ class GenericScraper(object):
         url = ('http://www.bing.com/search?q="{term}"&go=&qs=n&form=QBLH&filt=all'
                '&pq="{term}"&sc=0-0&sp=-1&sk=')
         for artist_str in args:
+            if artist_str in BING_CACHE:
+                return BING_CACHE[artist_str]
             url = url.format(term=urllib.quote_plus(artist_str))
             resp = self.http_get(url, user_agent='')
             soup = BeautifulSoup(resp.text)
@@ -50,6 +54,9 @@ class GenericScraper(object):
             digits = [n for n in soup.find('span', {'id': 'count'}).text if n in string.digits]
             if digits > winner[0]:
                 winner = (digits, artist_str)
+        for artist_str in args:
+            if artist_str != winner[1]:
+                BING_CACHE[artist_str] = winner[1]
         return winner[1]
 
     def _process_artist(self, artist_str):
