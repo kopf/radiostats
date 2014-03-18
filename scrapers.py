@@ -33,7 +33,7 @@ class GenericScraper(object):
             except Exception as e:
                 time.sleep(1)
                 return self.http_get(url, retries=retries-1)
-            finally:
+            else:
                 return retval
         else:
             log.error('Exceeded number of retries getting {0}'.format(url))
