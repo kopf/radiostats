@@ -40,10 +40,10 @@ class GenericScraper(object):
     def _find_most_popular(self, *args):
         """Searches bing for certain strings and returns the most popular"""
         winner = (0,)
-        url = ('http://www.bing.com/search?q={term}&go=&qs=n&form=QBLH&filt=all'
-               '&pq={term}&sc=0-0&sp=-1&sk=')
+        url = ('http://www.bing.com/search?q="{term}"&go=&qs=n&form=QBLH&filt=all'
+               '&pq="{term}"&sc=0-0&sp=-1&sk=')
         for artist_str in args:
-            url = url.format(term='"{0}"'.format(urllib.quote_plus(artist_str)))
+            url = url.format(term=urllib.quote_plus(artist_str))
             resp = self.http_get(url, user_agent='')
             soup = BeautifulSoup(resp.text)
             tag = soup.find('span', {'id': 'count'})
