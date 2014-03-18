@@ -60,6 +60,11 @@ class GenericScraper(object):
         return winner[1]
 
     def _process_artist(self, artist_str):
+        """Process artist string, splitting into multiple artists, and correctly
+        arranging First Name and Surname.
+
+        Unused and broken for the time being
+        """
         retval = []
         if '(feat' in artist_str.lower():
             artist_str = artist_str[:artist_str.lower().index('(feat')].strip()
@@ -115,13 +120,6 @@ class SWR1Scraper(GenericScraper):
         for time_tag in elements[::2]:
             artist = self.htmlparser.unescape(elements[i].span.text)[:128]
             try:
-                artist = self._process_artist(elements[i].span.text)
-            except Exception as e:
-                msg = "Couldn't parse artist '{0}'. Skipping..."
-                log.critical(msg.format(elements[i].span.text))
-                i += 2
-                continue
-            try:
                 title = elements[i].a.text
             except AttributeError:
                 title = elements[i].text
@@ -166,12 +164,6 @@ class SWR3Scraper(GenericScraper):
                 continue
             try:
                 artist = self.htmlparser.unescape(elements[0].text)[:128]
-                try:
-                    artist = self._process_artist(artist)
-                except Exception as e:
-                    msg = "Couldn't parse artist '{0}'. Skipping..."
-                    log.critical(msg.format(artist))
-                    continue
                 title = self.htmlparser.unescape(elements[1].text)[:256]
                 self.tracks.append(
                     (artist, title, self.time_to_datetime(elements[2].text, ':')))
