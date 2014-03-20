@@ -158,6 +158,8 @@ class SWR3Scraper(GenericScraper):
         (artist, title, time played) tuples
         """
         table = self.soup.find('table', {'class': 'richtext'})
+        if not table:
+            return False
         for row in table.findAll('tr'):
             elements = row.findAll('td')
             if not elements:
@@ -169,10 +171,13 @@ class SWR3Scraper(GenericScraper):
                     (artist, title, self.time_to_datetime(elements[2].text, ':')))
             except ValueError:
                 log.error('Error occurred on {0} - skipping...'.format(elements))
+        return True
 
     def scrape(self):
         for url in self.tracklist_urls:
             resp = self.http_get(url)
             self.soup = BeautifulSoup(resp.text)
-            self.extract_tracks()
+            result = self.extract_tracks()
+            if not result:
+                log.info('No tracks found in url {0}'.format(url))
 
