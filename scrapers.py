@@ -106,33 +106,27 @@ class SWR1Scraper(GenericScraper):
 
     @property
     def tracklist_urls(self):
-        return [x['value'] for x in self.soup.find(
-            'select', {'id': 'uhrzeit'}).findAll('option')]
+        tags = self.soup.find('ul', {'class': 'progTimeList'}).findAll('a')
+        return [a['href'] for a in tags]
 
     def extract_tracks(self):
-        """Parse HTML of a tracklist page and return a list of 
+        """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        main_div = self.soup.find('div', {'class': 'recherchelist'})
-        elements = main_div.findAll(
-            'p', {'class': ['sendezeitrl', 'songtitel']})
-        i = 1
-        for time_tag in elements[::2]:
-            artist = self.htmlparser.unescape(elements[i].span.text)[:128]
-            try:
-                title = elements[i].a.text
-            except AttributeError:
-                title = elements[i].text
-            title = self.htmlparser.unescape(title)[:256]
-            time_played = self.time_to_datetime(time_tag.text, '.')
+        main_div = self.soup.find('ul', {'class': 'musicList'})
+        elements = main_div.findAll('li')
+        for el in elements:
+            time_played = el.find('div', {'class': 'musicItemTime'}).p.text
+            time_played = self.time_to_datetime(time_played, '.')
+            artist = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).p.text)[:128]
+            title = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).a.text)[:256]
             self.tracks.append((artist, title, time_played))
-            i += 2
 
     def scrape(self):
         resp = self.http_get(self.base_url)
         soup = BeautifulSoup(resp.text)
-        date_links = soup.findAll('a', {'class': 'pgcalendarblue'})
-        for url in [tag['href'] for tag in date_links]:
+        date_links = [a['href'] for a in soup.find('ul', {'class': 'progDays'}).findAll('a')]
+        for url in date_links:
             if 'date={0}'.format(self.date.strftime('%Y%m%d')) in url:
                 resp = self.http_get(url)
                 self.soup = BeautifulSoup(resp.text)
@@ -154,7 +148,7 @@ class SWR3Scraper(GenericScraper):
         return [self.base_url.format(hour=i, date=self.date.strftime('%Y%m%d')) for i in range(24)]
 
     def extract_tracks(self):
-        """Parse HTML of a tracklist page and return a list of 
+        """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
         table = self.soup.find('table', {'class': 'richtext'})
