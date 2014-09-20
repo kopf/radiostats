@@ -119,7 +119,7 @@ class SWR1Scraper(GenericScraper):
             time_played = el.find('div', {'class': 'musicItemTime'}).p.text
             time_played = self.time_to_datetime(time_played, '.')
             artist = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).p.text)[:128]
-            title = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).a.text)[:256]
+            title = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).h3.text)[:256]
             self.tracks.append((artist, title, time_played))
 
     def scrape(self):
