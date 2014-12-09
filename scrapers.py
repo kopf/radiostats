@@ -2,7 +2,7 @@ import HTMLParser
 import time
 
 from BeautifulSoup import BeautifulSoup
-import dateutil
+from dateutil import parser as dateutil_parser
 import logbook
 import requests
 
@@ -164,9 +164,9 @@ class KEXPScraper(GenericScraper):
                 title = self.htmlparser.unescape(
                     row.find('div', {'class': 'TrackName'}).text)[:256]
                 time = row.find('div', {'class': 'AirDate'}).span.text
-                time = dateutil.parser.parse(time)
-                self.tracks.append(
-                    (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0)))
-            except AttributeError:
+                time = dateutil_parser.parse(time)
+                track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
+                self.tracks.append(track)
+            except AttributeError as e:
                 pass
         return True
