@@ -51,7 +51,7 @@ class GenericRunner(object):
             url.format(artist=quote_plus(track[0]), track=quote_plus(track[1]),
                        api_key=LASTFM_API_KEY)
         ).json()
-        if resp['results']['trackmatches']:
+        if resp['results'].get('trackmatches') and resp['results']['trackmatches'] != ' ':
             result = resp['results']['trackmatches']['track']
             if isinstance(result, list):
                 result = result[0]
