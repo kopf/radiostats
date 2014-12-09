@@ -48,7 +48,8 @@ class GenericRunner(object):
         url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
                u'&artist={artist}&track={track}&api_key={api_key}&format=json')
         resp = requests.get(
-            url.format(artist=quote_plus(track[0]), track=quote_plus(track[1]),
+            url.format(artist=quote_plus(track[0].encode('utf-8')),
+                       track=quote_plus(track[1].encode('utf-8')),
                        api_key=LASTFM_API_KEY)
         ).json()
         if resp['results'].get('trackmatches') and not isinstance(resp['results']['trackmatches'], basestring):
