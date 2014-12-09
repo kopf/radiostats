@@ -74,38 +74,39 @@ class GenericRunner(object):
         return track
 
     def run(self):
-        for date in self.date_range:
-            self.scraper = SCRAPERS[self.station_name]['cls'](date)
-            log.info('Scraping {0} for date {1}...'.format(
-                self.station_name, date.strftime('%Y-%m-%d')))
-            try:
-                self.scraper.scrape()
-            except LookupError:
-                msg = 'No data found for date {0} on {1}.'
-                log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
-                continue
-
-            added_already = 0
-            # Add all unique tracks: we need to make a set as sometimes
-            # tracks are duplicated on the website by accident
-            for track in list(set(self.scraper.tracks)):
+        with log.catch_exceptions():
+            for date in self.date_range:
+                self.scraper = SCRAPERS[self.station_name]['cls'](date)
+                log.info('Scraping {0} for date {1}...'.format(
+                    self.station_name, date.strftime('%Y-%m-%d')))
                 try:
-                    self.add_to_db(self.normalize(track))
-                except Exception as e:
-                    if e[0] == 1062:
-                        # We're encountering tracks we've already added.
-                        # Keep trying to add tracks for this date, but
-                        # don't proceed with processing further dates if
-                        # all tracks for this date were already added.
-                        added_already += 1
-                        continue
-                    else:
-                        raise e
-            self.db_conn.commit()
-            if self.scraper.tracks and added_already == len(self.scraper.tracks):
-                log.info('End reached for {0} at {1}. Stopping...'.format(
-                    self.station_name, date))
-                return
+                    self.scraper.scrape()
+                except LookupError:
+                    msg = 'No data found for date {0} on {1}.'
+                    log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
+                    continue
+
+                added_already = 0
+                # Add all unique tracks: we need to make a set as sometimes
+                # tracks are duplicated on the website by accident
+                for track in list(set(self.scraper.tracks)):
+                    try:
+                        self.add_to_db(self.normalize(track))
+                    except Exception as e:
+                        if e[0] == 1062:
+                            # We're encountering tracks we've already added.
+                            # Keep trying to add tracks for this date, but
+                            # don't proceed with processing further dates if
+                            # all tracks for this date were already added.
+                            added_already += 1
+                            continue
+                        else:
+                            raise e
+                self.db_conn.commit()
+                if self.scraper.tracks and added_already == len(self.scraper.tracks):
+                    log.info('End reached for {0} at {1}. Stopping...'.format(
+                        self.station_name, date))
+                    return
 
     def add_to_db(self, track):
         sql = u'insert into songs (time_played, station_name, artist, title) values (%s, %s, %s, %s);'
