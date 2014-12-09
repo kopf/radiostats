@@ -69,7 +69,7 @@ class GenericRunner(object):
             self.lastfm_cache.setdefault(track[0], {})[track[1]] = (result['artist'], result['name'])
 
             new_track = (result['artist'], result['name'], track[2])
-            log.info(u'Mapping: {0} to {1}'.format(track, new_track))
+            #log.info(u'Mapping: {0} to {1}'.format(track, new_track))
             track = new_track
         return track
 
