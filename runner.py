@@ -24,6 +24,8 @@ SCRAPERS = {
 }
 
 log = logbook.Logger()
+FILE_LOGGER = logbook.FileHandler('runner.log', bubble=True)
+FILE_LOGGER.push_application()
 
 
 def create_date_range(from_date):
@@ -53,7 +55,9 @@ class GenericRunner(object):
             result = resp['results']['trackmatches']['track']
             if isinstance(result, list):
                 result = result[0]
-            track = (result['artist'], result['name'], track[2])
+            new_track = (result['artist'], result['name'], track[2])
+            log.info(u'Mapping: {0} to {1}'.format(track, new_track))
+            track = new_track
         return track
 
     def run(self):

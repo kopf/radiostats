@@ -18,6 +18,8 @@ class GenericScraper(object):
         self.date = date
         self.tracks = []
         self.htmlparser = HTMLParser.HTMLParser()
+        logger = logbook.FileHandler(u'{0}.log'.format(self.name), bubble=True)
+        logger.push_application()
 
     def scrape(self):
         """Scrape tracks for a single date"""
@@ -50,6 +52,7 @@ class GenericScraper(object):
 
 
 class SWR1Scraper(GenericScraper):
+    name = 'SWR1'
     base_url = ('http://www.swr.de/swr1/bw/musik/musikrecherche/-/id=446260'
                 '/8biejp/index.html')
 
@@ -88,6 +91,7 @@ class SWR1Scraper(GenericScraper):
 
 
 class SWR3Scraper(GenericScraper):
+    name = 'SWR3'
     base_url = ('http://www.swr3.de/musik/playlisten/Musikrecherche-Playlist-Was-lief'
                 '-wann-auf-SWR3/-/id=47424/cf=42/did=65794/93avs/index.html'
                 '?hour={hour}&date={date}')
