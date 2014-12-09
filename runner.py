@@ -102,7 +102,7 @@ class GenericRunner(object):
                     else:
                         raise e
             self.db_conn.commit()
-            if added_already == len(self.scraper.tracks):
+            if self.scraper.tracks and added_already == len(self.scraper.tracks):
                 log.info('End reached for {0} at {1}. Stopping...'.format(
                     self.station_name, date))
                 return
