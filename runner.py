@@ -46,9 +46,13 @@ class GenericRunner(object):
             '192.168.92.20', 'radiostats', 'r4diostats', 'radiostats',
             use_unicode=True, charset='utf8')
         self.db = self.db_conn.cursor()
+        self.lastfm_cache = {}
 
     def normalize(self, track):
         """Using last.fm's API, normalise the artist and track title"""
+        if self.lastfm_cache.get(track[0], {}).get(track[1]):
+            artist, title = self.lastfm_cache[track[0]][track[1]]
+            return (artist, title, track[2])
         url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
                u'&artist={artist}&track={track}&api_key={api_key}&format=json')
         resp = requests.get(
@@ -60,6 +64,10 @@ class GenericRunner(object):
             result = resp['results']['trackmatches']['track']
             if isinstance(result, list):
                 result = result[0]
+
+            # update cache
+            self.lastfm_cache.setdefault(track[0], {})[track[1]] = (result['artist'], result['name'])
+
             new_track = (result['artist'], result['name'], track[2])
             log.info(u'Mapping: {0} to {1}'.format(track, new_track))
             track = new_track
