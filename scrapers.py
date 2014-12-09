@@ -160,9 +160,12 @@ class KEXPScraper(GenericScraper):
         for row in rows:
             try:
                 artist = self.htmlparser.unescape(
-                    row.find('div', {'class': 'ArtistName'}).text)[:128]
+                    row.find('div', {'class': 'ArtistName'}).text)[:128].strip()
                 title = self.htmlparser.unescape(
-                    row.find('div', {'class': 'TrackName'}).text)[:256]
+                    row.find('div', {'class': 'TrackName'}).text)[:256].strip()
+                if not (artist and title):
+                    # Sometimes, artist and/or title are missing on KEXP playlists
+                    continue
                 time = row.find('div', {'class': 'AirDate'}).span.text
                 time = dateutil_parser.parse(time)
                 track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
