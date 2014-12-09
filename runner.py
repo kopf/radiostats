@@ -49,15 +49,12 @@ class GenericRunner(object):
             url.format(artist=quote_plus(track[0]), track=quote_plus(track[1]),
                        api_key=LASTFM_API_KEY)
         ).json()
-        try:
-            artist = resp['results']['trackmatches']['track'][0]['artist']
-        except (IndexError, KeyError):
-            artist = track[0]
-        try:
-            title = resp['results']['trackmatches']['track'][0]['name']
-        except (IndexError, KeyError):
-            title = track[1]
-        return (artist, title, track[2])
+        if resp['results']['trackmatches']:
+            result = resp['results']['trackmatches']['track']
+            if isinstance(result, list):
+                result = result[0]
+            track = (result['artist'], result['name'], track[2])
+        return track
 
     def run(self):
         for date in self.date_range:
