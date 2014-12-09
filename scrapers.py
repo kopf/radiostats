@@ -1,7 +1,5 @@
 import HTMLParser
 import time
-import string
-import urllib
 
 from BeautifulSoup import BeautifulSoup
 import logbook
@@ -38,55 +36,6 @@ class GenericScraper(object):
         else:
             log.error('Exceeded number of retries getting {0}'.format(url))
             return requests.get(url)
-
-    def _find_most_popular(self, *args):
-        """Searches bing for certain strings and returns the most popular"""
-        winner = (0,)
-        url = ('http://www.bing.com/search?q="{term}"&go=&qs=n&form=QBLH&filt=all'
-               '&pq="{term}"&sc=0-0&sp=-1&sk=')
-        for artist_str in args:
-            if artist_str in BING_CACHE:
-                return BING_CACHE[artist_str]
-            url = url.format(term=urllib.quote_plus(artist_str))
-            resp = self.http_get(url, user_agent='')
-            soup = BeautifulSoup(resp.text)
-            tag = soup.find('span', {'id': 'count'})
-            digits = [n for n in soup.find('span', {'id': 'count'}).text if n in string.digits]
-            if digits > winner[0]:
-                winner = (digits, artist_str)
-        for artist_str in args:
-            if artist_str != winner[1]:
-                BING_CACHE[artist_str] = winner[1]
-        return winner[1]
-
-    def _process_artist(self, artist_str):
-        """Process artist string, splitting into multiple artists, and correctly
-        arranging First Name and Surname.
-
-        Unused and broken for the time being
-        """
-        retval = []
-        if '(feat' in artist_str.lower():
-            artist_str = artist_str[:artist_str.lower().index('(feat')].strip()
-        artists = artist_str.split('; ')
-        for artist in artists:
-            if ', ' in artist:
-                try:
-                    last_name, first_name = [name.strip() for name in artist.split(', ')]
-                    new_name = u'{0} {1}'.format(first_name, last_name)
-                    retval.append(self._find_most_popular(new_name, artist))
-                except ValueError as e:
-                    # probably dealing with something like "Pausini, Laura, Blunt, James"
-                    if len(names) == 4:
-                        names = [name.strip() for name in artist.split(', ')]
-                        new_names = [names[1], names[0], names[3], names[2]]
-                        retval.append(self._find_most_popular(' '.join(new_names[:2]), names[:2]))
-                        retval.append(self._find_most_popular(' '.join(new_names[2:4]), names[2:4]))
-                    else:
-                        raise e
-            else:
-                retval.append(artist)
-        return u'; '.join([name.strip() for name in retval])
 
     def time_to_datetime(self, text_time, split_char):
         """Transform a text time into a datetime using appropriate date"""

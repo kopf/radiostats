@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 from datetime import datetime, timedelta
 import logbook
+from urllib import quote_plus
 
 import gevent.monkey
 gevent.monkey.patch_socket()
 import gevent
 import MySQLdb
+import requests
 
 from scrapers import SWR1Scraper, SWR3Scraper
+from settings import LASTFM_API_KEY
 
 SCRAPERS = {
     'SWR1': {
@@ -38,6 +41,24 @@ class GenericRunner(object):
             use_unicode=True, charset='utf8')
         self.db = self.db_conn.cursor()
 
+    def normalize(self, track):
+        """Using last.fm's API, normalise the artist and track title"""
+        url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
+               u'&artist={artist}&track={track}&api_key={api_key}&format=json')
+        resp = requests.get(
+            url.format(artist=quote_plus(track[0]), track=quote_plus(track[1]),
+                       api_key=LASTFM_API_KEY)
+        ).json()
+        try:
+            artist = resp['results']['trackmatches']['track'][0]['artist']
+        except (IndexError, KeyError):
+            artist = track[0]
+        try:
+            title = resp['results']['trackmatches']['track'][0]['name']
+        except (IndexError, KeyError):
+            title = track[1]
+        return (artist, title, track[2])
+
     def run(self):
         for date in self.date_range:
             self.scraper = SCRAPERS[self.station_name]['cls'](date)
@@ -55,7 +76,7 @@ class GenericRunner(object):
             # tracks are duplicated on the website by accident
             for track in list(set(self.scraper.tracks)):
                 try:
-                    self.add_to_db(track)
+                    self.add_to_db(self.normalize(track))
                 except Exception as e:
                     if e[0] == 1062:
                         # We're encountering tracks we've already added.
