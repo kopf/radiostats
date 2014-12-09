@@ -9,7 +9,7 @@ import gevent
 import MySQLdb
 import requests
 
-from scrapers import SWR1Scraper, SWR3Scraper
+from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
 from settings import LASTFM_API_KEY
 
 SCRAPERS = {
@@ -20,6 +20,10 @@ SCRAPERS = {
     'SWR3': {
         'cls': SWR3Scraper,
         'start_date': '20130301'
+    },
+    'KEXP': {
+        'cls': KEXPScraper,
+        'start_date': '20010412'
     }
 }
 
