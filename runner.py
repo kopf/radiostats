@@ -13,14 +13,14 @@ from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
 from settings import LASTFM_API_KEY
 
 SCRAPERS = {
-    #'SWR1': {
-    #    'cls': SWR1Scraper,
-    #    'start_date': '20140213'
-    #},
-    #'SWR3': {
-    #    'cls': SWR3Scraper,
-    #    'start_date': '20130301'
-    #},
+    'SWR1': {
+        'cls': SWR1Scraper,
+        'start_date': '20140213'
+    },
+    'SWR3': {
+        'cls': SWR3Scraper,
+        'start_date': '20130301'
+    },
     'KEXP': {
         'cls': KEXPScraper,
         'start_date': '20010412'
@@ -52,17 +52,20 @@ class GenericRunner(object):
                          track=quote_plus(track[1].encode('utf-8')),
                          api_key=LASTFM_API_KEY)
         resp = http_get(url).json()
-        if resp.get('results', {}).get('trackmatches') and not isinstance(resp['results']['trackmatches'], basestring):
-            result = resp['results']['trackmatches']['track']
-            if isinstance(result, list):
-                result = result[0]
+        if isinstance(resp, dict):
+            if (resp.get('results', {}).get('trackmatches')
+                    and not isinstance(resp['results']['trackmatches'], basestring)):
+                result = resp['results']['trackmatches']['track']
+                if isinstance(result, list):
+                    result = result[0]
+                self.lastfm_cache.setdefault(track[0], {})[track[1]] = (result['artist'], result['name'])
 
-            # update cache
-            self.lastfm_cache.setdefault(track[0], {})[track[1]] = (result['artist'], result['name'])
-
-            new_track = (result['artist'], result['name'], track[2])
-            #log.info(u'Mapping: {0} to {1}'.format(track, new_track))
-            track = new_track
+                new_track = (result['artist'], result['name'], track[2])
+                #log.info(u'Mapping: {0} to {1}'.format(track, new_track))
+                track = new_track
+            else:
+                # Track not found by last.fm
+                pass
         else:
             log.error('Invalid Last.fm response: {0}'.format(url))
         return track
