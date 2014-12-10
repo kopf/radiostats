@@ -55,12 +55,11 @@ class GenericRunner(object):
             return (artist, title, track[2])
         url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
                u'&artist={artist}&track={track}&api_key={api_key}&format=json')
-        resp = requests.get(
-            url.format(artist=quote_plus(track[0].encode('utf-8')),
-                       track=quote_plus(track[1].encode('utf-8')),
-                       api_key=LASTFM_API_KEY)
-        ).json()
-        if resp['results'].get('trackmatches') and not isinstance(resp['results']['trackmatches'], basestring):
+        url = url.format(artist=quote_plus(track[0].encode('utf-8')),
+                         track=quote_plus(track[1].encode('utf-8')),
+                         api_key=LASTFM_API_KEY)
+        resp = requests.get(url).json()
+        if resp.get('results', {}).get('trackmatches') and not isinstance(resp['results']['trackmatches'], basestring):
             result = resp['results']['trackmatches']['track']
             if isinstance(result, list):
                 result = result[0]
@@ -71,6 +70,8 @@ class GenericRunner(object):
             new_track = (result['artist'], result['name'], track[2])
             #log.info(u'Mapping: {0} to {1}'.format(track, new_track))
             track = new_track
+        else:
+            log.error('Invalid Last.fm response: {0}'.format(url))
         return track
 
     def run(self):
