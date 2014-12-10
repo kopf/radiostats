@@ -6,6 +6,7 @@ import logbook
 
 from lib import http_get
 
+
 class GenericScraper(object):
 
     cookies = {}
@@ -149,6 +150,6 @@ class KEXPScraper(GenericScraper):
                 time = dateutil_parser.parse(time)
                 track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
                 self.tracks.append(track)
-            except AttributeError as e:
+            except AttributeError:
                 pass
         return True

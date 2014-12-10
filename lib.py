@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import time
 
 import requests
@@ -22,3 +23,11 @@ def http_get(self, url, retries=10, user_agent=USER_AGENT, cookies=None):
     else:
         # Try one last time, if it fails, it fails
         return requests.get(url)
+
+
+def create_date_range(from_date):
+    now = datetime.now()
+    from_date = from_date.replace(hour=0, minute=0, second=0)
+    retval = [from_date + timedelta(days=x) for x in range(0,(now-from_date).days)]
+    retval.reverse()
+    return retval

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from datetime import datetime, timedelta
+from datetime import datetime
 import logbook
 from urllib import quote_plus
 
@@ -8,7 +8,7 @@ gevent.monkey.patch_socket()
 import gevent
 import MySQLdb
 
-from lib import http_get
+from lib import http_get, create_date_range
 from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
 from settings import LASTFM_API_KEY
 
@@ -31,13 +31,6 @@ log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler('runner.log', bubble=True)
 FILE_LOGGER.push_application()
 
-
-def create_date_range(from_date):
-    now = datetime.now()
-    from_date = from_date.replace(hour=0, minute=0, second=0)
-    retval = [from_date + timedelta(days=x) for x in range(0,(now-from_date).days)]
-    retval.reverse()
-    return retval
 
 class GenericRunner(object):
     def __init__(self, station_name):
