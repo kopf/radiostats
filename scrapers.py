@@ -1,16 +1,10 @@
 import HTMLParser
-import time
 
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
 import logbook
-import requests
 
-USER_AGENT = ('Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 '
-              '(KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36')
-
-BING_CACHE = {}
-
+from lib import http_get
 
 class GenericScraper(object):
 
@@ -26,21 +20,6 @@ class GenericScraper(object):
         """Scrape tracks for a single date"""
         raise NotImplementedError
 
-    def http_get(self, url, retries=10, user_agent=USER_AGENT):
-        """Wrapper for requests.get for retries"""
-        if retries:
-            try:
-                retval = requests.get(
-                    url, headers={'User-Agent': user_agent}, cookies=self.cookies)
-            except Exception as e:
-                time.sleep(1)
-                return self.http_get(url, retries=retries-1)
-            else:
-                return retval
-        else:
-            self.log.error('Exceeded number of retries getting {0}'.format(url))
-            return requests.get(url)
-
     def time_to_datetime(self, text_time, split_char):
         """Transform a text time into a datetime using appropriate date"""
         text_time = text_time.split(split_char)
@@ -54,7 +33,7 @@ class GenericScraper(object):
 
     def scrape(self):
         for url in self.tracklist_urls:
-            resp = self.http_get(url)
+            resp = http_get(url, cookies=self.cookies)
             self.soup = BeautifulSoup(resp.text)
             result = self.extract_tracks()
             if not result:
@@ -85,15 +64,15 @@ class SWR1Scraper(GenericScraper):
             self.tracks.append((artist, title, time_played))
 
     def scrape(self):
-        resp = self.http_get(self.base_url)
+        resp = http_get(self.base_url)
         soup = BeautifulSoup(resp.text)
         date_links = [a['href'] for a in soup.find('ul', {'class': 'progDays'}).findAll('a')]
         for url in date_links:
             if 'date={0}'.format(self.date.strftime('%Y%m%d')) in url:
-                resp = self.http_get(url)
+                resp = http_get(url)
                 self.soup = BeautifulSoup(resp.text)
                 for tracklist_url in self.tracklist_urls:
-                    resp = self.http_get(tracklist_url)
+                    resp = http_get(tracklist_url)
                     self.soup = BeautifulSoup(resp.text)
                     self.extract_tracks()
                 return

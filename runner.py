@@ -7,8 +7,8 @@ import gevent.monkey
 gevent.monkey.patch_socket()
 import gevent
 import MySQLdb
-import requests
 
+from lib import http_get
 from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
 from settings import LASTFM_API_KEY
 
@@ -58,7 +58,7 @@ class GenericRunner(object):
         url = url.format(artist=quote_plus(track[0].encode('utf-8')),
                          track=quote_plus(track[1].encode('utf-8')),
                          api_key=LASTFM_API_KEY)
-        resp = requests.get(url).json()
+        resp = http_get(url).json()
         if resp.get('results', {}).get('trackmatches') and not isinstance(resp['results']['trackmatches'], basestring):
             result = resp['results']['trackmatches']['track']
             if isinstance(result, list):
