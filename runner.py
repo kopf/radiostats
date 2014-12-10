@@ -90,8 +90,9 @@ class GenericRunner(object):
                 # Add all unique tracks: we need to make a set as sometimes
                 # tracks are duplicated on the website by accident
                 for track in list(set(self.scraper.tracks)):
+                    track = self.normalize(track)
                     try:
-                        self.add_to_db(self.normalize(track))
+                        self.add_to_db(track)
                     except Exception as e:
                         if e[0] == 1062:
                             # We're encountering tracks we've already added.
