@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from datetime import datetime
 import logbook
+from simplejson.decoder import JSONDecodeError
 from urllib import quote_plus
 
 import gevent.monkey
@@ -51,7 +52,14 @@ class GenericRunner(object):
         url = url.format(artist=quote_plus(track[0].encode('utf-8')),
                          track=quote_plus(track[1].encode('utf-8')),
                          api_key=LASTFM_API_KEY)
-        resp = http_get(url).json()
+        try:
+            resp = http_get(url).json()
+        except JSONDecodeError:
+            try:
+                resp = http_get(url).json()
+            except JSONDecodeError as e:
+                log.error('Error occurred twice trying to parse response from {0}'.format(url))
+                raise e
         if isinstance(resp, dict):
             if (resp.get('results', {}).get('trackmatches')
                     and not isinstance(resp['results']['trackmatches'], basestring)):
@@ -87,7 +95,10 @@ class GenericRunner(object):
                 # Add all unique tracks: we need to make a set as sometimes
                 # tracks are duplicated on the website by accident
                 for track in list(set(self.scraper.tracks)):
-                    track = self.normalize(track)
+                    try:
+                        track = self.normalize(track)
+                    except Exception as e:
+                        log.exception('Exception occurred contacting last.fm: {0}'.format(str(e)))
                     try:
                         self.add_to_db(track)
                     except Exception as e:
