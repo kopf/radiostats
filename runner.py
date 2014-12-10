@@ -13,14 +13,14 @@ from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
 from settings import LASTFM_API_KEY
 
 SCRAPERS = {
-    'SWR1': {
-        'cls': SWR1Scraper,
-        'start_date': '20140213'
-    },
-    'SWR3': {
-        'cls': SWR3Scraper,
-        'start_date': '20130301'
-    },
+    #'SWR1': {
+    #    'cls': SWR1Scraper,
+    #    'start_date': '20140213'
+    #},
+    #'SWR3': {
+    #    'cls': SWR3Scraper,
+    #    'start_date': '20130301'
+    #},
     'KEXP': {
         'cls': KEXPScraper,
         'start_date': '20010412'
@@ -119,10 +119,9 @@ class GenericRunner(object):
     @property
     def date_range(self):
         """A list of dates to be processed"""
-        #latest = self.get_latest_date_from_db()
-        #if not latest:
-        #    latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
-        latest = datetime.strptime('20141125', '%Y%m%d')
+        latest = self.get_latest_date_from_db()
+        if not latest:
+            latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
         return create_date_range(latest)
 
 

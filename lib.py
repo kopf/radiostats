@@ -26,7 +26,7 @@ def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
 
 
 def create_date_range(from_date):
-    now = datetime.now()
+    now = datetime.strptime('20141126', '%Y%m%d') #datetime.now()
     from_date = from_date.replace(hour=0, minute=0, second=0)
     retval = [from_date + timedelta(days=x) for x in range(0,(now-from_date).days)]
     retval.reverse()
