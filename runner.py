@@ -119,9 +119,10 @@ class GenericRunner(object):
     @property
     def date_range(self):
         """A list of dates to be processed"""
-        latest = self.get_latest_date_from_db()
-        if not latest:
-            latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
+        #latest = self.get_latest_date_from_db()
+        #if not latest:
+        #    latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
+        latest = datetime.strptime('20141125', '%Y%m%d')
         return create_date_range(latest)
 
 
