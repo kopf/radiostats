@@ -1,4 +1,5 @@
 logbook
 gevent
-MySQL-python
 python-dateutil
+django
+django-suit
