@@ -1,8 +1,14 @@
 from django.db import models
+from django_countries.fields import CountryField
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=32)
+
+
+class Station(models.Model):
+    name = models.CharField(max_length=32)
+    country = CountryField()
 
 
 class NormalizedSong(models.Model):

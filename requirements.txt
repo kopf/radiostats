@@ -3,3 +3,4 @@ gevent
 python-dateutil
 django
 django-suit
+django-countries
