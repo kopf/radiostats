@@ -25,5 +25,7 @@ class Song(models.Model):
 
 
 class Play(models.Model):
-    song = models.ForeignKey(Song)
     time = models.DateTimeField()
+    song = models.ForeignKey(Song)
+    station = models.ForeignKey(Station)
+

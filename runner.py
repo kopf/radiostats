@@ -11,7 +11,7 @@ import MySQLdb
 
 from lib import http_get, create_date_range
 from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
-from settings import LASTFM_API_KEY
+#from settings import LASTFM_API_KEY
 
 SCRAPERS = {
     'SWR1': {
