@@ -4,6 +4,8 @@ import logbook
 from simplejson.decoder import JSONDecodeError
 from urllib import quote_plus
 
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 import gevent.monkey
 gevent.monkey.patch_socket()
 import gevent
@@ -11,7 +13,7 @@ import MySQLdb
 
 from lib import http_get, create_date_range
 from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
-#from settings import LASTFM_API_KEY
+
 
 SCRAPERS = {
     'SWR1': {
@@ -33,6 +35,31 @@ FILE_LOGGER = logbook.FileHandler('runner.log', bubble=True)
 FILE_LOGGER.push_application()
 
 
+class Command(BaseCommand):
+    help = 'Scrapes radio stations for new tracks'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--station',
+            action='store',
+            dest='station',
+            default=False,
+            help='Specify a certain radio station to scrape')
+
+    def handle(self, *args, **options):
+        if options['station']:
+            if options['station'] not in SCRAPERS:
+                raise CommandError('Invalid radio station: {0}'.format(
+                    options['station']))
+            runner = GenericRunner(options['station'])
+            runner.run()
+        else:
+            threads = []
+            for station_name in SCRAPERS:
+                runner = GenericRunner(station_name)
+                threads.append(gevent.spawn(runner.run))
+            gevent.joinall(threads)
+
+
 class GenericRunner(object):
     def __init__(self, station_name):
         self.station_name = station_name
@@ -51,7 +78,7 @@ class GenericRunner(object):
                u'&artist={artist}&track={track}&api_key={api_key}&format=json')
         url = url.format(artist=quote_plus(track[0].encode('utf-8')),
                          track=quote_plus(track[1].encode('utf-8')),
-                         api_key=LASTFM_API_KEY)
+                         api_key=settings.LASTFM_API_KEY)
         try:
             resp = http_get(url).json()
         except JSONDecodeError:
@@ -137,11 +164,3 @@ class GenericRunner(object):
         if not latest:
             latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
         return create_date_range(latest)
-
-
-if __name__ == '__main__':
-    threads = []
-    for station_name in SCRAPERS:
-        runner = GenericRunner(station_name)
-        threads.append(gevent.spawn(runner.run))
-    gevent.joinall(threads)
