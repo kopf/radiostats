@@ -70,7 +70,10 @@ class Command(BaseCommand):
         resp = http_get(url).json()
         toptags = resp.get('track', {}).get('toptags')
         if isinstance(toptags, dict):
-            return [tag['name'] for tag in toptags.get('tag', [])]
+            if isinstance(toptags.get('tag', []), dict):
+                return [toptags['tag']['name']]
+            else:
+                return [tag['name'] for tag in toptags.get('tag', [])]
         return []
 
     def normalize(self, track):
