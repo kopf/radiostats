@@ -4,7 +4,7 @@ from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
 import logbook
 
-from lib import http_get
+from scraper.lib import http_get
 
 
 class GenericScraper(object):

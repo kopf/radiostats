@@ -9,10 +9,9 @@ from django.core.management.base import BaseCommand, CommandError
 import gevent.monkey
 gevent.monkey.patch_socket()
 import gevent
-import MySQLdb
 
-from lib import http_get, create_date_range
-from scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
+from scraper.lib import http_get, create_date_range
+from scraper.scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
 
 
 SCRAPERS = {
