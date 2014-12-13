@@ -20,8 +20,12 @@ class Command(BaseCommand):
     help = 'Normalizes tracks with canonical song information from Last.fm'
 
     def handle(self, *args, **options):
+        i = 0
         for track in Song.objects.filter(normalized=None):
             self.normalize(track)
+            i += 1
+            if i % 10 == 0:
+                log.info('Done {0}...'.format(i))
 
     def search_track(self, artist, title):
         url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
