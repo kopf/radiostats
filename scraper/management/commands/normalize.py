@@ -78,7 +78,7 @@ class Command(BaseCommand):
             return
         try:
             normalized = NormalizedSong.objects.get(
-                artist=track_info['artist'], title=track_info['title'])
+                artist=track_info['artist'], title=track_info['name'])
         except ObjectDoesNotExist:
             tags = self.get_tags(
                 track_info['mbid'].strip(), track_info['artist'],
