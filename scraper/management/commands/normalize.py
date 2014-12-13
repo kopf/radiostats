@@ -82,7 +82,7 @@ class Command(BaseCommand):
         except ObjectDoesNotExist:
             tags = self.get_tags(
                 track_info['mbid'].strip(), track_info['artist'],
-                track_info['title'])
+                track_info['name'])
             tag_objects = []
             for text_tag in tags:
                 try:
