@@ -51,10 +51,18 @@ class Command(BaseCommand):
             result = None
         return result
 
-    def get_tags(self, mbid):
-        url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getInfo'
-               u'&mbid={mbid}&api_key={api_key}&format=json')
-        url = url.format(mbid=mbid, api_key=settings.LASTFM_API_KEY)
+    def get_tags(self, mbid, artist, title):
+        if mbid:
+            url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getInfo'
+                   u'&mbid={mbid}&api_key={api_key}&format=json')
+            url = url.format(mbid=mbid, api_key=settings.LASTFM_API_KEY)
+        else:
+            url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getInfo'
+                   u'&artist={artist}&title={title}&api_key={api_key}&format=json')
+            url = url.format(
+                artist=quote_plus(artist.encode('utf-8')),
+                title=quote_plus(title.encode('utf-8')),
+                api_key=settings.LASTFM_API_KEY)
         resp = http_get(url).json()
         tags = resp.get('track', {}).get('toptags', {}).get('tag', [])
         return [tag['name'] for tag in tags]
@@ -65,9 +73,12 @@ class Command(BaseCommand):
         if not track_info:
             return
         try:
-            normalized = NormalizedSong.objects.get(mbid=track_info['mbid'])
+            normalized = NormalizedSong.objects.get(
+                artist=track_info['artist'], title=track_info['title'])
         except ObjectDoesNotExist:
-            tags = self.get_tags(track_info['mbid'])
+            tags = self.get_tags(
+                track_info['mbid'].strip(), track_info['artist'],
+                track_info['title'])
             tag_objects = []
             for text_tag in tags:
                 try:
