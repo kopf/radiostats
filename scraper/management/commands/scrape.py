@@ -11,23 +11,7 @@ gevent.monkey.patch_socket()
 import gevent
 
 from scraper.lib import http_get, create_date_range
-from scraper.scrapers import SWR1Scraper, SWR3Scraper, KEXPScraper
-
-
-SCRAPERS = {
-    'SWR1': {
-        'cls': SWR1Scraper,
-        'start_date': '20140213'
-    },
-    'SWR3': {
-        'cls': SWR3Scraper,
-        'start_date': '20130301'
-    },
-    'KEXP': {
-        'cls': KEXPScraper,
-        'start_date': '20010412'
-    }
-}
+from scraper.scrapers import SCRAPERS
 
 log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler('runner.log', bubble=True)
