@@ -63,10 +63,6 @@ class Command(BaseCommand):
 class GenericRunner(object):
     def __init__(self, station_name):
         self.station_name = station_name
-        self.db_conn = MySQLdb.connect(
-            '192.168.92.20', 'radiostats', 'r4diostats', 'radiostats_old',
-            use_unicode=True, charset='utf8')
-        self.db = self.db_conn.cursor()
         self.lastfm_cache = {}
 
     def normalize(self, track):
@@ -122,10 +118,10 @@ class GenericRunner(object):
                 # Add all unique tracks: we need to make a set as sometimes
                 # tracks are duplicated on the website by accident
                 for track in list(set(self.scraper.tracks)):
-                    try:
-                        track = self.normalize(track)
-                    except Exception as e:
-                        log.exception('Exception occurred contacting last.fm: {0}'.format(str(e)))
+                    #try:
+                    #    track = self.normalize(track)
+                    #except Exception as e:
+                    #    log.exception('Exception occurred contacting last.fm: {0}'.format(str(e)))
                     try:
                         self.add_to_db(track)
                     except Exception as e:
