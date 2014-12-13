@@ -50,43 +50,6 @@ class GenericRunner(object):
         self.station, _ = Station.objects.get_or_create(
             name=station_name,
             country=SCRAPERS[station_name]['country'])
-        self.lastfm_cache = {}
-
-    def normalize(self, track):
-        """Using last.fm's API, normalise the artist and track title"""
-        if self.lastfm_cache.get(track[0], {}).get(track[1]):
-            artist, title = self.lastfm_cache[track[0]][track[1]]
-            return (artist, title, track[2])
-        url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
-               u'&artist={artist}&track={track}&api_key={api_key}&format=json')
-        url = url.format(artist=quote_plus(track[0].encode('utf-8')),
-                         track=quote_plus(track[1].encode('utf-8')),
-                         api_key=settings.LASTFM_API_KEY)
-        try:
-            resp = http_get(url).json()
-        except JSONDecodeError:
-            try:
-                resp = http_get(url).json()
-            except JSONDecodeError as e:
-                log.error('Error occurred twice trying to parse response from {0}'.format(url))
-                raise e
-        if isinstance(resp, dict):
-            if (resp.get('results', {}).get('trackmatches')
-                    and not isinstance(resp['results']['trackmatches'], basestring)):
-                result = resp['results']['trackmatches']['track']
-                if isinstance(result, list):
-                    result = result[0]
-                self.lastfm_cache.setdefault(track[0], {})[track[1]] = (result['artist'], result['name'])
-
-                new_track = (result['artist'], result['name'], track[2])
-                #log.info(u'Mapping: {0} to {1}'.format(track, new_track))
-                track = new_track
-            else:
-                # Track not found by last.fm
-                pass
-        else:
-            log.error('Invalid Last.fm response: {0}'.format(url))
-        return track
 
     def run(self):
         with log.catch_exceptions():
