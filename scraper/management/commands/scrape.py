@@ -22,26 +22,12 @@ FILE_LOGGER.push_application()
 class Command(BaseCommand):
     help = 'Scrapes radio stations for new tracks'
 
-    def add_arguments(self, parser):
-        parser.add_argument('--station',
-            action='store',
-            dest='station',
-            default=False,
-            help='Specify a certain radio station to scrape')
-
     def handle(self, *args, **options):
-        if options['station']:
-            if options['station'] not in SCRAPERS:
-                raise CommandError('Invalid radio station: {0}'.format(
-                    options['station']))
-            runner = GenericRunner(options['station'])
-            runner.run()
-        else:
-            threads = []
-            for station_name in SCRAPERS:
-                runner = GenericRunner(station_name)
-                threads.append(gevent.spawn(runner.run))
-            gevent.joinall(threads)
+        threads = []
+        for station_name in SCRAPERS:
+            runner = GenericRunner(station_name)
+            threads.append(gevent.spawn(runner.run))
+        gevent.joinall(threads)
 
 
 class GenericRunner(object):
