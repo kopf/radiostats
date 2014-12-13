@@ -11,6 +11,7 @@ gevent.monkey.patch_socket()
 import gevent
 
 from scraper.lib import http_get, create_date_range
+from scraper.models import Station, Song, Play
 from scraper.scrapers import SCRAPERS
 
 log = logbook.Logger()
@@ -46,6 +47,9 @@ class Command(BaseCommand):
 class GenericRunner(object):
     def __init__(self, station_name):
         self.station_name = station_name
+        self.station, _ = Station.objects.get_or_create(
+            name=station_name,
+            country=SCRAPERS[station_name]['country'])
         self.lastfm_cache = {}
 
     def normalize(self, track):
@@ -96,50 +100,33 @@ class GenericRunner(object):
                     msg = 'No data found for date {0} on {1}.'
                     log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
                     continue
-
                 added_already = 0
                 # Add all unique tracks: we need to make a set as sometimes
                 # tracks are duplicated on the website by accident
                 for track in list(set(self.scraper.tracks)):
-                    #try:
-                    #    track = self.normalize(track)
-                    #except Exception as e:
-                    #    log.exception('Exception occurred contacting last.fm: {0}'.format(str(e)))
-                    try:
-                        self.add_to_db(track)
-                    except Exception as e:
-                        if e[0] == 1062:
-                            # We're encountering tracks we've already added.
-                            # Keep trying to add tracks for this date, but
-                            # don't proceed with processing further dates if
-                            # all tracks for this date were already added.
-                            added_already += 1
-                            continue
-                        else:
-                            raise e
-                self.db_conn.commit()
+                    song, _ = Song.objects.get_or_create(
+                        artist=track[0], title=track[1])
+                    _, created = Play.objects.get_or_create(
+                        time=track[2], song=song, station=self.station)
+                    if not created:
+                        # We're encountering tracks we've already added.
+                        # Keep trying to add tracks for this date, but
+                        # don't proceed with processing further dates if
+                        # all tracks for this date were already added.
+                        added_already += 1
+                        continue
                 if self.scraper.tracks and added_already == len(self.scraper.tracks):
                     log.info('End reached for {0} at {1}. Stopping...'.format(
                         self.station_name, date))
                     return
 
-    def add_to_db(self, track):
-        sql = u'insert into songs (time_played, station_name, artist, title) values (%s, %s, %s, %s);'
-        self.db.execute(sql, (track[2], self.station_name, track[0], track[1]))
-
-    def get_latest_date_from_db(self):
-        sql = u'select time_played from songs where station_name=%s order by time_played desc limit 1;'
-        self.db.execute(sql, (self.station_name))
-        try:
-            row = self.db.fetchone()[0]
-        except TypeError:
-            row = None
-        return row
-
     @property
     def date_range(self):
         """A list of dates to be processed"""
-        latest = self.get_latest_date_from_db()
-        if not latest:
-            latest = datetime.strptime(SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
+        try:
+            latest = Play.objects.filter(
+                station=self.station).order_by('-time').first().time
+        except AttributeError:
+            latest = datetime.strptime(
+                SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
         return create_date_range(latest)
