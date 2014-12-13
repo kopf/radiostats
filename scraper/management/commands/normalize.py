@@ -68,8 +68,10 @@ class Command(BaseCommand):
                 title=quote_plus(title.encode('utf-8')),
                 api_key=settings.LASTFM_API_KEY)
         resp = http_get(url).json()
-        tags = resp.get('track', {}).get('toptags', {}).get('tag', [])
-        return [tag['name'] for tag in tags]
+        toptags = resp.get('track', {}).get('toptags')
+        if isinstance(toptags, dict):
+            return [tag['name'] for tag in toptags.get('tag', [])]
+        return []
 
     def normalize(self, track):
         """Using last.fm's API, normalise the artist and track title"""
