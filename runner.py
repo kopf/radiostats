@@ -37,7 +37,7 @@ class GenericRunner(object):
     def __init__(self, station_name):
         self.station_name = station_name
         self.db_conn = MySQLdb.connect(
-            '192.168.92.20', 'radiostats', 'r4diostats', 'radiostats',
+            '192.168.92.20', 'radiostats', 'r4diostats', 'radiostats_old',
             use_unicode=True, charset='utf8')
         self.db = self.db_conn.cursor()
         self.lastfm_cache = {}
