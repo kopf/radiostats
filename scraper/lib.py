@@ -27,8 +27,8 @@ def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
 
 def create_date_range(from_date, to_date=None):
     if to_date is None:
-        now = datetime.now()
+        to_date = datetime.now()
     from_date = from_date.replace(hour=0, minute=0, second=0)
-    retval = [from_date + timedelta(days=x) for x in range(0,(now-from_date).days)]
+    retval = [from_date + timedelta(days=x) for x in range(0, (to_date - from_date).days)]
     retval.reverse()
     return retval
