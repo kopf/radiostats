@@ -4,7 +4,7 @@ from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
 import logbook
 
-from lib import http_get
+from scraper.lib import http_get
 
 
 class GenericScraper(object):
@@ -153,3 +153,22 @@ class KEXPScraper(GenericScraper):
             except AttributeError:
                 pass
         return True
+
+
+SCRAPERS = {
+    'SWR1': {
+        'cls': SWR1Scraper,
+        'start_date': '20140213',
+        'country': 'DE'
+    },
+    'SWR3': {
+        'cls': SWR3Scraper,
+        'start_date': '20130301',
+        'country': 'DE'
+    },
+    'KEXP': {
+        'cls': KEXPScraper,
+        'start_date': '20010412',
+        'country': 'US'
+    }
+}
