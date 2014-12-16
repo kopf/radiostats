@@ -151,8 +151,48 @@ class KEXPScraper(GenericScraper):
                 track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
                 self.tracks.append(track)
             except AttributeError:
-                pass
+                self.log.error(u'Failed to extract track from KEXP: {0}'.format(row))
         return True
+
+
+class FluxFMScraper(GenericScraper):
+    base_url = 'http://www.fluxfm.de/fluxfm-playlist/?date={0}'
+
+    @property
+    def tracklist_urls(self):
+        return [self.base_url.format(self.date.strftime('%Y-%m-%d'))]
+
+    def extract_tracks(self):
+        """Parse HTML of a tracklist page and return a list of
+        (artist, title, time played) tuples
+        """
+        table = self.soup.find('table', {'id': 'songs'})
+        if not table:
+            return False
+        for row in table.findAll('tr'):
+            try:
+                time = row.find('td', {'class': 'time'}).div.text
+                artist = row.find('span', {'class': 'artist'}).text
+                title = row.find('span', {'class': 'song'}).text.strip('- ')
+            except AttributeError:
+                self.log.error(u'Failed to extract track from FluxFM: {0}'.format(row))
+                continue
+            time = self.time_to_datetime(time, ':')
+            track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
+            self.tracks.append(track)
+        return True
+
+
+class FluxFMBerlinScraper(FluxFMScraper):
+    cookies = {'mfmloc': 'berlin'}
+
+
+class FluxFMBremenScraper(FluxFMScraper):
+    cookies = {'mfmloc': 'bremen'}
+
+
+class FluxFMWorldwideScraper(FluxFMScraper):
+    cookies = {'mfmloc': 'world'}
 
 
 SCRAPERS = {
@@ -170,5 +210,22 @@ SCRAPERS = {
         'cls': KEXPScraper,
         'start_date': '20010412',
         'country': 'US'
-    }
+    },
+    'FluxFMBerlin': {
+        'cls': FluxFMBerlinScraper,
+        'start_date': '20090804',
+        'country': 'DE'
+    },
+    'FluxFMBremen': {
+        'cls': FluxFMBremenScraper,
+        'start_date': '20110405',
+        'country': 'DE'
+    },
+    # Only lasted for 2 years, and requires an "international" country field value
+    #
+    #'FluxFMWorldwide': {
+    #    'cls': FluxFMWorldwideScraper,
+    #    'start_date': '20111103',
+    #    'country': 'DE'
+    #},
 }
