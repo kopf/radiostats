@@ -56,6 +56,9 @@ class SWR1Scraper(GenericScraper):
         (artist, title, time played) tuples
         """
         main_div = self.soup.find('ul', {'class': 'musicList'})
+        if not main_div:
+            self.log.error('No tracks found on SWR1 for date {0}'.format(
+                self.date.strftime('%Y-%m-%d %H:00')))
         elements = main_div.findAll('li')
         for el in elements:
             time_played = el.find('div', {'class': 'musicItemTime'}).p.text
@@ -151,7 +154,8 @@ class KEXPScraper(GenericScraper):
                 track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
                 self.tracks.append(track)
             except AttributeError:
-                self.log.error(u'Failed to extract track from KEXP: {0}'.format(row))
+                # "Air break"
+                pass
         return True
 
 
