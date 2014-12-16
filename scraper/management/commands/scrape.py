@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 from datetime import datetime
 import logbook
-from simplejson.decoder import JSONDecodeError
-from urllib import quote_plus
 
-from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 import gevent.monkey
 gevent.monkey.patch_socket()
 import gevent
 
-from scraper.lib import http_get, create_date_range
+from scraper.lib import create_date_range
 from scraper.models import Station, Song, Play
 from scraper.scrapers import SCRAPERS
 
