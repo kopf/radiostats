@@ -68,12 +68,13 @@ class Command(BaseCommand):
                 title=quote_plus(title.encode('utf-8')),
                 api_key=settings.LASTFM_API_KEY)
         resp = http_get(url).json()
-        toptags = resp.get('track', {}).get('toptags')
-        if isinstance(toptags, dict):
-            if isinstance(toptags.get('tag', []), dict):
-                return [toptags['tag']['name']]
-            else:
-                return [tag['name'] for tag in toptags.get('tag', [])]
+        if isinstance(resp, dict):
+            toptags = resp.get('track', {}).get('toptags')
+            if isinstance(toptags, dict):
+                if isinstance(toptags.get('tag', []), dict):
+                    return [toptags['tag']['name']]
+                else:
+                    return [tag['name'] for tag in toptags.get('tag', [])]
         return []
 
     def normalize(self, track):
