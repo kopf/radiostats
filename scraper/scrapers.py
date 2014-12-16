@@ -184,14 +184,17 @@ class FluxFMScraper(GenericScraper):
 
 
 class FluxFMBerlinScraper(FluxFMScraper):
+    name = 'FluxFM Berlin'
     cookies = {'mfmloc': 'berlin'}
 
 
 class FluxFMBremenScraper(FluxFMScraper):
+    name = 'FluxFM Bremen'
     cookies = {'mfmloc': 'bremen'}
 
 
 class FluxFMWorldwideScraper(FluxFMScraper):
+    name = 'FluxFM Worldwide'
     cookies = {'mfmloc': 'world'}
 
 
