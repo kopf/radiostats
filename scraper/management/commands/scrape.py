@@ -32,8 +32,6 @@ class GenericRunner(object):
             country=SCRAPERS[station_name]['country'])
         self.htmlparser = HTMLParser.HTMLParser()
         self.log = logbook.Logger()
-        FILE_LOGGER = logbook.FileHandler(u'{0}.log'.format(station_name), bubble=True)
-        FILE_LOGGER.push_greenlet()
 
     def run(self):
         with self.log.catch_exceptions():
