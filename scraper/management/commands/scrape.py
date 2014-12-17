@@ -12,10 +12,6 @@ from scraper.lib import create_date_range
 from scraper.models import Station, Song, Play
 from scraper.scrapers import SCRAPERS
 
-log = logbook.Logger()
-FILE_LOGGER = logbook.FileHandler('runner.log', bubble=True)
-FILE_LOGGER.push_application()
-
 
 class Command(BaseCommand):
     help = 'Scrapes radio stations for new tracks'
@@ -35,18 +31,21 @@ class GenericRunner(object):
             name=station_name,
             country=SCRAPERS[station_name]['country'])
         self.htmlparser = HTMLParser.HTMLParser()
+        self.log = logbook.Logger()
+        FILE_LOGGER = logbook.FileHandler(u'{0}.log'.format(station_name), bubble=True)
+        FILE_LOGGER.push_greenlet()
 
     def run(self):
-        with log.catch_exceptions():
+        with self.log.catch_exceptions():
             for date in self.date_range:
                 scraper = SCRAPERS[self.station_name]['cls'](date)
-                log.info('Scraping {0} for date {1}...'.format(
+                self.log.info('Scraping {0} for date {1}...'.format(
                     self.station_name, date.strftime('%Y-%m-%d')))
                 try:
                     scraper.scrape()
                 except LookupError:
                     msg = 'No data found for date {0} on {1}.'
-                    log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
+                    self.log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
                     continue
                 added_already = 0
                 # Add all unique tracks: we need to make a set as sometimes
@@ -65,7 +64,7 @@ class GenericRunner(object):
                         added_already += 1
                         continue
                 if scraper.tracks and added_already == len(scraper.tracks):
-                    log.info('End reached for {0} at {1}. Stopping...'.format(
+                    self.log.info('End reached for {0} at {1}. Stopping...'.format(
                         self.station_name, date))
                     return
 
