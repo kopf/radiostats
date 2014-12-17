@@ -1,1 +1,2 @@
 radiostats/settings/auth.py
+radiostats/settings/__init__.py
