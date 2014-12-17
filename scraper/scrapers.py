@@ -1,5 +1,3 @@
-import HTMLParser
-
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
 import logbook
