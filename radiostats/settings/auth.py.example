@@ -5,3 +5,5 @@ DB = {
     'password': '', # database user password
     'host': '',     # database host
 }
+
+SECRET_KEY = '' # your django SECRET_KEY
