@@ -1,1 +1,7 @@
 LASTFM_API_KEY = '' # API key from Last.fm
+
+DB = {
+    'username': '', # database username
+    'password': '', # database user password
+    'host': '',     # database host
+}
