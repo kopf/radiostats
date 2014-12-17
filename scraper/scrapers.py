@@ -213,16 +213,16 @@ SCRAPERS = {
         'start_date': '20010412',
         'country': 'US'
     },
-    'FluxFMBerlin': {
-        'cls': FluxFMBerlinScraper,
-        'start_date': '20090804',
-        'country': 'DE'
-    },
-    'FluxFMBremen': {
-        'cls': FluxFMBremenScraper,
-        'start_date': '20110405',
-        'country': 'DE'
-    },
+    #'FluxFMBerlin': {
+    #    'cls': FluxFMBerlinScraper,
+    #    'start_date': '20090804',
+    #    'country': 'DE'
+    #},
+    #'FluxFMBremen': {
+    #    'cls': FluxFMBremenScraper,
+    #    'start_date': '20110405',
+    #    'country': 'DE'
+    #},
     # Only lasted for 2 years, and requires an "international" country field value
     #
     #'FluxFMWorldwide': {
