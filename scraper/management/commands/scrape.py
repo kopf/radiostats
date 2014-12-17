@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from datetime import datetime
 import logbook
+import HTMLParser
 
 from django.core.management.base import BaseCommand
 import gevent.monkey
@@ -33,6 +34,7 @@ class GenericRunner(object):
         self.station, _ = Station.objects.get_or_create(
             name=station_name,
             country=SCRAPERS[station_name]['country'])
+        self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
         with log.catch_exceptions():
@@ -51,7 +53,8 @@ class GenericRunner(object):
                 # tracks are duplicated on the website by accident
                 for track in list(set(scraper.tracks)):
                     song, _ = Song.objects.get_or_create(
-                        artist=track[0], title=track[1])
+                        artist=self.htmlparser.unescape(track[0]),
+                        title=self.htmlparser.unescape(track[1]))
                     _, created = Play.objects.get_or_create(
                         time=track[2], song=song, station=self.station)
                     if not created:

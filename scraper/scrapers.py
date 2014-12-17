@@ -14,7 +14,6 @@ class GenericScraper(object):
     def __init__(self, date):
         self.date = date
         self.tracks = []
-        self.htmlparser = HTMLParser.HTMLParser()
         self.log = logbook.Logger(self.name)
 
     def scrape(self):
@@ -63,8 +62,8 @@ class SWR1Scraper(GenericScraper):
         for el in elements:
             time_played = el.find('div', {'class': 'musicItemTime'}).p.text
             time_played = self.time_to_datetime(time_played, '.')
-            artist = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).p.text)
-            title = self.htmlparser.unescape(el.find('div', {'class': 'musicItemText'}).h3.text)
+            artist = el.find('div', {'class': 'musicItemText'}).p.text
+            title = el.find('div', {'class': 'musicItemText'}).h3.text
             self.tracks.append((artist, title, time_played))
 
     def scrape(self):
@@ -105,8 +104,8 @@ class SWR3Scraper(GenericScraper):
             if not elements:
                 continue
             try:
-                artist = self.htmlparser.unescape(elements[0].text)
-                title = self.htmlparser.unescape(elements[1].text)
+                artist = elements[0].text
+                title = elements[1].text
                 self.tracks.append(
                     (artist, title, self.time_to_datetime(elements[2].text, ':')))
             except ValueError:
@@ -142,10 +141,8 @@ class KEXPScraper(GenericScraper):
             return False
         for row in rows:
             try:
-                artist = self.htmlparser.unescape(
-                    row.find('div', {'class': 'ArtistName'}).text).strip()
-                title = self.htmlparser.unescape(
-                    row.find('div', {'class': 'TrackName'}).text).strip()
+                artist = row.find('div', {'class': 'ArtistName'}).text.strip()
+                title = row.find('div', {'class': 'TrackName'}).text.strip()
                 if not (artist and title):
                     # Sometimes, artist and/or title are missing on KEXP playlists
                     continue
