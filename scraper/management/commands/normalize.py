@@ -102,8 +102,7 @@ class Command(BaseCommand):
                 mbid=track_info['mbid'],
                 artist=track_info['artist'],
                 title=track_info['name'])
-            for tag in tag_objects:
-                normalized.tags.add(tag)
+            normalized.tags.add(*tag_objects)
             normalized.save()
         track.normalized = normalized
         track.save()
