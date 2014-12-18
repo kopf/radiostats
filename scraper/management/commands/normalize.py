@@ -100,8 +100,8 @@ class Command(BaseCommand):
                 tag_objects.append(tag)
             normalized, _= NormalizedSong.objects.get_or_create(
                 mbid=track_info['mbid'],
-                artist=track_info['artist'],
-                title=track_info['name'])
+                artist=track_info['artist'][:256],
+                title=track_info['name'][:256])
             normalized.tags.add(*tag_objects)
             normalized.save()
         track.normalized = normalized

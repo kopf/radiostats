@@ -13,14 +13,14 @@ class Station(models.Model):
 
 class NormalizedSong(models.Model):
     mbid = models.CharField(max_length=36)
-    artist = models.TextField()
-    title = models.TextField()
+    artist = models.CharField(max_length=256)
+    title = models.CharField(max_length=256)
     tags = models.ManyToManyField(Tag, null=True)
 
 
 class Song(models.Model):
-    artist = models.TextField()
-    title = models.TextField()
+    artist = models.CharField(max_length=256)
+    title = models.CharField(max_length=256)
     normalized = models.ForeignKey(NormalizedSong, null=True)
 
 

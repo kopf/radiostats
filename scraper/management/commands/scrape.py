@@ -50,8 +50,8 @@ class GenericRunner(object):
                 # tracks are duplicated on the website by accident
                 for track in list(set(scraper.tracks)):
                     song, _ = Song.objects.get_or_create(
-                        artist=self.htmlparser.unescape(track[0]),
-                        title=self.htmlparser.unescape(track[1]))
+                        artist=self.htmlparser.unescape(track[0])[:256],
+                        title=self.htmlparser.unescape(track[1])[:256])
                     _, created = Play.objects.get_or_create(
                         time=track[2], song=song, station=self.station)
                     if not created:
