@@ -49,9 +49,12 @@ class GenericRunner(object):
                 # Add all unique tracks: we need to make a set as sometimes
                 # tracks are duplicated on the website by accident
                 for track in list(set(scraper.tracks)):
+                    artist = self.htmlparser.unescape(track[0])[:256].strip()
+                    title = self.htmlparser.unescape(track[1])[:256].strip()
+                    if not (artist and title):
+                        continue
                     song, _ = Song.objects.get_or_create(
-                        artist=self.htmlparser.unescape(track[0])[:256],
-                        title=self.htmlparser.unescape(track[1])[:256])
+                        artist=artist, title=title)
                     _, created = Play.objects.get_or_create(
                         time=track[2], song=song, station=self.station)
                     if not created:
