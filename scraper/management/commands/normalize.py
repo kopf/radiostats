@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 resp = http_get(url).json()
             except JSONDecodeError as e:
                 log.error('Error occurred twice trying to parse response from {0}'.format(url))
-                raise e
+                return None
         if isinstance(resp, dict):
             if (resp.get('results', {}).get('trackmatches')
                     and not isinstance(resp['results']['trackmatches'], basestring)):
