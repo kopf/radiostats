@@ -59,6 +59,10 @@ class SWR1Scraper(GenericScraper):
             time_played = self.time_to_datetime(time_played, '.')
             artist = el.find('div', {'class': 'musicItemText'}).p.text
             title = el.find('div', {'class': 'musicItemText'}).h3.text
+            # They fuck up on SWR1 occasionally, placing the artist
+            # at the end of the title too:
+            if title.endswith(artist):
+                title = title.split(artist)[0]
             self.tracks.append((artist, title, time_played))
 
     def scrape(self):
