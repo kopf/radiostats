@@ -1,6 +1,8 @@
 from base import *
 from auth import DB
 
+DEBUG = False
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

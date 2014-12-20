@@ -14,10 +14,6 @@ class GenericScraper(object):
         self.tracks = []
         self.log = logbook.Logger(self.name)
 
-    def scrape(self):
-        """Scrape tracks for a single date"""
-        raise NotImplementedError
-
     def time_to_datetime(self, text_time, split_char):
         """Transform a text time into a datetime using appropriate date"""
         text_time = text_time.split(split_char)
@@ -30,6 +26,7 @@ class GenericScraper(object):
         return self.date.replace(hour=hour, minute=minute, second=second)
 
     def scrape(self):
+        """General scrape workflow. Can be overridden if necessary."""
         for url in self.tracklist_urls:
             resp = http_get(url, cookies=self.cookies)
             self.soup = BeautifulSoup(resp.text)
