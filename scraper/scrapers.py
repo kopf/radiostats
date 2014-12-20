@@ -220,11 +220,9 @@ SCRAPERS = {
         'start_date': '20110405',
         'country': 'DE'
     },
-    # Only lasted for 2 years, and requires an "international" country field value
-    #
-    #'FluxFMWorldwide': {
-    #    'cls': FluxFMWorldwideScraper,
-    #    'start_date': '20111103',
-    #    'country': 'DE'
-    #},
+    'FluxFMWorldwide': {
+        'cls': FluxFMWorldwideScraper,
+        'start_date': '20111103',
+        'country': 'DE'
+    },
 }
