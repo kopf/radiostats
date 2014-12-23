@@ -10,6 +10,9 @@ from scraper.models import Station, Song, Play
 from scraper.scrapers import SCRAPERS
 
 
+log = logbook.Logger()
+
+
 class Command(BaseCommand):
     help = 'Remove mistakenly duplicated plays of tracks'
 
