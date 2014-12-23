@@ -22,6 +22,7 @@ class Command(BaseCommand):
             for play in Play.objects.filter(station=station):
                 duplicates = Play.objects.filter(
                     song=play.song, station=play.station,
+                    time__gt=play.time,
                     time__lte=play.time+timedelta(minutes=10))
                 duplicates = duplicates.exclude(id=play.id)
                 if duplicates:
