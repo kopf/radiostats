@@ -23,8 +23,8 @@ class Command(BaseCommand):
                     time__lte=play.time+timedelta(minutes=10),
                     id__ne=play.id)
                 if duplicates:
-                    log.info(u'Duplicate found for {0}'.format(
-                        ' '.join([play.name, play.time]))
+                    log.info(u'Duplicate found on {0} for {1}'.format(
+                        station.name, ' '.join([play.song.name, play.time])))
                     for duplicate in duplicates:
                         log.info(u'Duplicate: {0}'.format(
-                            ' '.join([duplicate.name, duplicate.time]))
+                            ' '.join([duplicate.song.name, duplicate.time])))
