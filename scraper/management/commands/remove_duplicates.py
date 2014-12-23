@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 duplicates = duplicates.exclude(id=play.id)
                 if duplicates:
                     log.info(u'Duplicate found on {0} for {1}'.format(
-                        station.name, ' '.join([play.song.title, play.time])))
+                        station.name, ' '.join([play.song.title, play.time.strftime('%Y-%m-%d %H:%M:%S')])))
                     for duplicate in duplicates:
                         log.info(u'Duplicate: {0}'.format(
-                            ' '.join([duplicate.song.title, duplicate.time])))
+                            ' '.join([duplicate.song.title, duplicate.time.strftime('%Y-%m-%d %H:%M:%S')])))
