@@ -26,6 +26,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for station in Station.objects.all():
             log.info(u'Scanning {0}'.format(station.name))
+            self.deleted[station.name] = 0
             for play in Play.objects.filter(station=station):
                 duplicates = Play.objects.filter(
                     song=play.song, station=play.station,
@@ -39,7 +40,7 @@ class Command(BaseCommand):
                         log.info(u'Duplicate: {0}'.format(
                             ' '.join([duplicate.song.title, duplicate.time.strftime('%Y-%m-%d %H:%M:%S')])))
                         self.to_delete_ids.append(duplicate.id)
-                        self.deleted.setdefault(station.name, 0) += 1
+                        self.deleted[station.name] += 1
         log.info('Deleting...')
         Play.objects.filter(id__in=self.to_delete_ids).delete()
         log.info('==============')
