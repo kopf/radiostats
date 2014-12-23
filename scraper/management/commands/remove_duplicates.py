@@ -14,7 +14,14 @@ log = logbook.Logger()
 
 
 class Command(BaseCommand):
+    """Sometimes, especially when one show ends and another begins, a track
+    will be displayed twice on the radio station's website, even though it was
+    just played once. This script removes all duplicates within 10 minutes of
+    eachother, leaving just the first Play object."""
+
     help = 'Remove mistakenly duplicated plays of tracks'
+    deleted = {}
+    to_delete_ids = []
 
     def handle(self, *args, **options):
         for station in Station.objects.all():
@@ -31,3 +38,12 @@ class Command(BaseCommand):
                     for duplicate in duplicates:
                         log.info(u'Duplicate: {0}'.format(
                             ' '.join([duplicate.song.title, duplicate.time.strftime('%Y-%m-%d %H:%M:%S')])))
+                        self.to_delete_ids.append(duplicate.id)
+                        self.deleted.setdefault(station.name, 0) += 1
+        log.info('Deleting...')
+        Play.objects.filter(id__in=self.to_delete_ids).delete()
+        log.info('==============')
+        log.info('Report:')
+        for station_name, deleted_count in self.deleted.iteritems():
+            log.info('{0}: {1} deleted'.format(station_name, deleted_count))
+        log.info('==============')
