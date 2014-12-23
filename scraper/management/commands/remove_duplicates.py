@@ -23,8 +23,8 @@ class Command(BaseCommand):
                 duplicates = Play.objects.filter(
                     song=play.song, station=play.station,
                     time__gte=play.time-timedelta(minutes=10),
-                    time__lte=play.time+timedelta(minutes=10),
-                    id__ne=play.id)
+                    time__lte=play.time+timedelta(minutes=10))
+                duplicates = duplicates.exclude(id=play.id)
                 if duplicates:
                     log.info(u'Duplicate found on {0} for {1}'.format(
                         station.name, ' '.join([play.song.name, play.time])))
