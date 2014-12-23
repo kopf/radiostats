@@ -24,7 +24,7 @@ class Command(BaseCommand):
                     id__ne=play.id)
                 if duplicates:
                     log.info(u'Duplicate found for {0}'.format(
-                        ' '.join([play.name, play.time]))
+                        ' '.join([play.name, play.time])))
                     for duplicate in duplicates:
                         log.info(u'Duplicate: {0}'.format(
-                            ' '.join([duplicate.name, duplicate.time]))
+                            ' '.join([duplicate.name, duplicate.time])))
