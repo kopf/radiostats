@@ -29,10 +29,10 @@ file, namely:
 
 Each scraper class must have the following attributes:
 
-* `name`: The scraper's name
+* `name`: The radio station's name.
 * `date`: A `datetime.datetime` object representing the date being scraped. One 
 scraper instance will be created per date by the `scrape` django-admin job.
-* `tracks`: A list of tuples of the form: `("artist name", "track title", <datetime object of time track was played>)`
+* `tracks`: A list of tuples, each of the form: `("artist name", "track title", <datetime object of time track was played>)`
 * `scrape()`: The function called from the `scrape` job which populates the `tracks` list.
 
 It's a good idea to have a quick read of `scrapers.py` to see examples of
@@ -41,7 +41,8 @@ a `GenericScraper` class is provided. This class provides a typical `scrape()`
 function which is sufficient for many cases. It behaves as follows:
 
 * Iterates over `self.tracklist_urls` - a list of URLs, each containing a playlist
-to be parsed and stored.
+to be parsed and stored. This is necessary as many radio stations separate
+tracklists on an hour-by-hour basis, meaning that there are 24 URLs to be scraped for one day. If the radio station in question puts all tracks for the entire day on one webpage, this can simply be a list containing one string (see, for example, the `FluxFMScraper`).
 * For each URL, GET the HTML content and store its BeautifulSoup representation in `self.soup`.
 * Call `self.extract_tracks()`, a function that will find all tracks in `self.soup` and append them to `self.tracks`
 
