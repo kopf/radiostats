@@ -22,7 +22,8 @@ def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
             return retval
     else:
         # Try one last time, if it fails, it fails
-        return requests.get(url)
+        return requests.get(
+            url, headers={'User-Agent': user_agent}, cookies=cookies)
 
 
 def create_date_range(from_date, to_date=None):
