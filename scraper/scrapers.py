@@ -221,9 +221,9 @@ SCRAPERS = {
         'start_date': '20110405',
         'country': 'DE'
     },
-    'FluxFMWorldwide': {
-        'cls': FluxFMWorldwideScraper,
-        'start_date': '20111103',
-        'country': 'DE'
-    },
+    #'FluxFMWorldwide': {
+    #    'cls': FluxFMWorldwideScraper,
+    #    'start_date': '20111103',
+    #    'country': 'DE'
+    #},
 }
