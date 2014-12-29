@@ -50,10 +50,11 @@ Occasionally, it is necessary to override the `scrape` function (see the `SWR1Sc
 but for the most part it should be necessary to just create a class that inherits from `GenericScraper`
 and defines `self.name`, `self.tracklist_urls` and `self.extract_tracks`. 
 
-Scrapers do not need to take care of the following:
+Scrapers do *not* need to take care of the following:
 
 * Decoding HTML entities
-* Mistaken deduplication of tracks on radio websites
+* Determining a canonical artist name and song title for entries (the [normalize job](https://github.com/kopf/radiostats/blob/master/scraper/management/commands/normalize.py) takes care of this, querying Last.fm for metadata, so that the application doesn't record "Beatles, The - Taxman" and "The Beatles - Taxman" as two different songs by different artists)
+* Deduplication of mistakenly duplicated tracks on radio websites (the [remove_duplicates job](https://github.com/kopf/radiostats/blob/master/scraper/management/commands/remove_duplicates.py) takes care of this)
 * Retrying GET requests (as long as the `http_get` helper is used)
 
 Once the scraper is written, an entry needs to be added to the `SCRAPERS` dict in the following form:
