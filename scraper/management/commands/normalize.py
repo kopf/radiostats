@@ -12,14 +12,14 @@ from scraper.lib import http_get
 from scraper.models import Song, NormalizedSong, Tag
 
 log = logbook.Logger()
-FILE_LOGGER = logbook.FileHandler('runner.log', bubble=True)
-FILE_LOGGER.push_application()
+FILE_LOGGER = logbook.FileHandler('normalize.log', bubble=True)
 
 
 class Command(BaseCommand):
     help = 'Normalizes tracks with canonical song information from Last.fm'
 
     def handle(self, *args, **options):
+        FILE_LOGGER.push_thread()
         i = 0
         for track in Song.objects.filter(normalized=None):
             self.normalize(track)

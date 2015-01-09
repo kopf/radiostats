@@ -6,13 +6,12 @@ from scraper.lib import http_get
 
 
 class GenericScraper(object):
-
     cookies = {}
 
     def __init__(self, date):
         self.date = date
         self.tracks = []
-        self.log = logbook.Logger(self.name)
+        self.log = logbook.Logger()
 
     def time_to_datetime(self, text_time, split_char):
         """Transform a text time into a datetime using appropriate date"""
@@ -36,7 +35,6 @@ class GenericScraper(object):
 
 
 class SWR1Scraper(GenericScraper):
-    name = 'SWR1'
     base_url = ('http://www.swr.de/swr1/bw/musik/musikrecherche/-/id=446260'
                 '/8biejp/index.html')
 
@@ -82,7 +80,6 @@ class SWR1Scraper(GenericScraper):
 
 
 class SWR3Scraper(GenericScraper):
-    name = 'SWR3'
     base_url = ('http://www.swr3.de/musik/playlisten/Musikrecherche-Playlist-Was-lief'
                 '-wann-auf-SWR3/-/id=47424/cf=42/did=65794/93avs/index.html'
                 '?hour={hour}&date={date}')
@@ -114,8 +111,7 @@ class SWR3Scraper(GenericScraper):
 
 
 class KEXPScraper(GenericScraper):
-    name = 'KEXP'
-    base_url = ('http://www.kexp.org/playlist/{year}/{month}/{date}/{hour}')
+    base_url = 'http://www.kexp.org/playlist/{year}/{month}/{date}/{hour}'
     cookies = {'newhome2014_splash': '1'}
 
     @property
@@ -181,17 +177,14 @@ class FluxFMScraper(GenericScraper):
 
 
 class FluxFMBerlinScraper(FluxFMScraper):
-    name = 'FluxFM Berlin'
     cookies = {'mfmloc': 'berlin'}
 
 
 class FluxFMBremenScraper(FluxFMScraper):
-    name = 'FluxFM Bremen'
     cookies = {'mfmloc': 'bremen'}
 
 
 class FluxFMWorldwideScraper(FluxFMScraper):
-    name = 'FluxFM Worldwide'
     cookies = {'mfmloc': 'world'}
 
 

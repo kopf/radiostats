@@ -29,7 +29,6 @@ file, namely:
 
 Each scraper class must have the following attributes:
 
-* `name`: The radio station's name.
 * `date`: A `datetime.datetime` object representing the date being scraped. One
 scraper instance will be created per date by the `scrape` django-admin job.
 * `tracks`: A list of tuples, each of the form: `("artist name", "track title", <datetime object of time track was played>)`
