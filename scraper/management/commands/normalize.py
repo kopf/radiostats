@@ -55,8 +55,8 @@ class Command(BaseCommand):
         track_info = self.get_info(track.artist, track.title)
         if not track_info:
             return
-        artist = track_info['artist']['name']
-        title = track_info['name']
+        artist = track_info['artist']['name'][:256]
+        title = track_info['name'][:256]
         mbid = track_info['mbid']
         toptags = track_info.get('toptags', [])
         if isinstance(toptags, dict):
@@ -80,8 +80,8 @@ class Command(BaseCommand):
                 tag_objects.append(tag)
             normalized, _= NormalizedSong.objects.get_or_create(
                 mbid=mbid,
-                artist=artist[:256],
-                title=title[:256])
+                artist=artist,
+                title=title)
             normalized.tags.add(*tag_objects)
             normalized.save()
         track.normalized = normalized
