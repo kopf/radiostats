@@ -30,8 +30,8 @@ class Command(BaseCommand):
             if i % 10 == 0:
                 log.info('Done {0}...'.format(i))
 
-    def search_track(self, artist, title):
-        url = (u'http://ws.audioscrobbler.com/2.0/?method=track.search'
+    def get_info(self, artist, title):
+        url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getinfo&autocorrect=1'
                u'&artist={artist}&track={title}&api_key={api_key}&format=json')
         url = url.format(artist=quote_plus(artist.encode('utf-8')),
                          title=quote_plus(title.encode('utf-8')),
@@ -44,56 +44,33 @@ class Command(BaseCommand):
             except JSONDecodeError as e:
                 log.error('Error occurred twice trying to parse response from {0}'.format(url))
                 return None
-        if isinstance(resp, dict):
-            if (resp.get('results', {}).get('trackmatches')
-                    and not isinstance(resp['results']['trackmatches'], basestring)):
-                result = resp['results']['trackmatches']['track']
-                if isinstance(result, list):
-                    result = result[0]
-            else:
-                # Track not found by last.fm
-                result = None
+        if isinstance(resp, dict) and not 'error' in resp and 'track' in resp:
+            return resp['track']
         else:
             log.error('Invalid Last.fm response: {0}'.format(url))
-            result = None
-        return result
-
-    def get_tags(self, mbid, artist, title):
-        if mbid:
-            url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getInfo'
-                   u'&mbid={mbid}&api_key={api_key}&format=json')
-            url = url.format(mbid=mbid, api_key=settings.LASTFM_API_KEY)
-        else:
-            url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getInfo'
-                   u'&artist={artist}&title={title}&api_key={api_key}&format=json')
-            url = url.format(
-                artist=quote_plus(artist.encode('utf-8')),
-                title=quote_plus(title.encode('utf-8')),
-                api_key=settings.LASTFM_API_KEY)
-        resp = http_get(url).json()
-        if isinstance(resp, dict):
-            toptags = resp.get('track', {}).get('toptags')
-            if isinstance(toptags, dict):
-                if isinstance(toptags.get('tag', []), dict):
-                    return [toptags['tag']['name']]
-                else:
-                    return [tag['name'] for tag in toptags.get('tag', [])]
-        return []
+            return None
 
     def normalize(self, track):
         """Using last.fm's API, normalise the artist and track title"""
-        track_info = self.search_track(track.artist, track.title)
+        track_info = self.get_info(track.artist, track.title)
         if not track_info:
             return
+        artist = track_info['artist']['name']
+        title = track_info['name']
+        mbid = track_info['mbid']
+        toptags = track_info.get('toptags', [])
+        if isinstance(toptags, dict):
+            if isinstance(toptags.get('tag', []), dict):
+                # only one tag
+                toptags = [toptags['tag']['name']]
+            else:
+                toptags = [tag['name'] for tag in toptags.get('tag', [])]
         try:
             normalized = NormalizedSong.objects.get(
-                artist=track_info['artist'], title=track_info['name'])
+                mbid=mbid, artist=artist, title=title)
         except ObjectDoesNotExist:
-            tags = self.get_tags(
-                track_info['mbid'].strip(), track_info['artist'],
-                track_info['name'])
             tag_objects = []
-            for text_tag in tags:
+            for text_tag in toptags:
                 try:
                     tag, _ = Tag.objects.get_or_create(name=text_tag)
                 except DataError:
@@ -102,9 +79,9 @@ class Command(BaseCommand):
                     continue
                 tag_objects.append(tag)
             normalized, _= NormalizedSong.objects.get_or_create(
-                mbid=track_info['mbid'],
-                artist=track_info['artist'][:256],
-                title=track_info['name'][:256])
+                mbid=mbid,
+                artist=artist[:256],
+                title=title[:256])
             normalized.tags.add(*tag_objects)
             normalized.save()
         track.normalized = normalized
