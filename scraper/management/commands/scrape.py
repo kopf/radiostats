@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 from datetime import datetime
-import logbook
 import HTMLParser
+import logbook
+import os
 
 from django.core.management.base import BaseCommand
 import gevent.monkey
 gevent.monkey.patch_socket()
 import gevent
 
+from radiostats.settings import LOG_DIR
 from scraper.lib import create_date_range
 from scraper.models import Station, Song, Play
 from scraper.scrapers import SCRAPERS
@@ -35,7 +37,8 @@ class GenericRunner(object):
         self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
-        log_handler = logbook.FileHandler(u'{0}.log'.format(self.station_name))
+        log_handler = logbook.FileHandler(
+            os.path.join(LOG_DIR, u'{0}.log'.format(self.station_name)))
         log_handler.push_thread()
         with log.catch_exceptions():
             for date in self.date_range:

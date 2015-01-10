@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 from auth import *
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+LOG_DIR = os.path.join(BASE_DIR, '../logs')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

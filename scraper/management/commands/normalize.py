@@ -2,17 +2,20 @@
 import logbook
 from simplejson.decoder import JSONDecodeError
 from urllib import quote_plus
+import os
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DataError
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from radiostats.settings import LOG_DIR
 from scraper.lib import http_get
 from scraper.models import Song, NormalizedSong, Tag
 
 log = logbook.Logger()
-FILE_LOGGER = logbook.FileHandler('normalize.log', bubble=True)
+FILE_LOGGER = logbook.FileHandler(
+    os.path.join(LOG_DIR, 'normalize.log'), bubble=True)
 
 
 class Command(BaseCommand):
