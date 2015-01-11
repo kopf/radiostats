@@ -142,6 +142,9 @@ class Command(BaseCommand):
             mbid = track_info['mbid']
             toptags = track_info.get('toptags', [])
         if not mbid:
+            if ';' in artist:
+                # Try slicing into multiple artists and retry using the first one listed
+                return self.query_lastfm(artist.split(';')[0], title)
             return None
         mbid, fixed_artist, fixed_title = self.query_musicbrainz(
             mbid, fixed_artist, fixed_title)
