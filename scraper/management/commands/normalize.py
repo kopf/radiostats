@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 log.info('Done {0}...'.format(i))
 
     def _get(self, url):
-        """An extra, clumsy wrapper for http_get for the last.fm api"""
+        """HTTP GET and decode JSON"""
         try:
             resp = http_get(url).json()
         except JSONDecodeError:
@@ -109,6 +109,19 @@ class Command(BaseCommand):
                 return [tag['name'] for tag in toptags.get('tag', [])]
         return []
 
+    def query_musicbrainz(self, mbid, artist, title):
+        """Query musicbrainz, resolving the recording to the root 'work' MBID"""
+        url = ('http://musicbrainz.org/ws/2/recording/{0}'
+               '?inc=artist-credits+work-rels&fmt=json')
+        resp = self._get(url.format(mbid))
+        if resp.get('relations'):
+            relation = resp['relations'][0]
+            if 'cover' not in relation['attributes']:
+                mbid = relation['work']['id']
+                artist = resp['artist-credit'][0]['name']
+                title = relation['work']['title']
+        return mbid, artist, title
+
     def query_lastfm(self, artist, title):
         """Use track.getinfo to get track metadata. If it fails, fall back on
         track.search"""
@@ -128,6 +141,10 @@ class Command(BaseCommand):
             fixed_title = track_info['name'][:256]
             mbid = track_info['mbid']
             toptags = track_info.get('toptags', [])
+        if not mbid:
+            return None
+        mbid, fixed_artist, fixed_title = self.query_musicbrainz(
+            mbid, fixed_artist, fixed_title)
         tags = self.extract_tags(toptags)
         return {'artist': fixed_artist, 'title': fixed_title, 'mbid': mbid,
                 'tags': tags}
@@ -138,9 +155,7 @@ class Command(BaseCommand):
         if not track_info:
             return
         try:
-            normalized = NormalizedSong.objects.get(
-                mbid=track_info['mbid'], artist=track_info['artist'],
-                title=track_info['title'])
+            normalized = NormalizedSong.objects.get(mbid=track_info['mbid'])
         except ObjectDoesNotExist:
             tag_objects = []
             for text_tag in track_info['tags']:
