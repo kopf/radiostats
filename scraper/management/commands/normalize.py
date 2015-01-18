@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from datetime import datetime
 import logbook
 from simplejson.decoder import JSONDecodeError
 from urllib import quote_plus
@@ -29,6 +30,8 @@ class Command(BaseCommand):
         i = 0
         for track in Song.objects.filter(normalized=None):
             self.normalize(track)
+            track.normalized_at = datetime.utcnow()
+            track.save()
             i += 1
             if i % 10 == 0:
                 log.info('Done {0}...'.format(i))
