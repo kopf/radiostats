@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import pytz
 import time
 
 import requests
@@ -33,3 +34,16 @@ def create_date_range(from_date, to_date=None):
     retval = [from_date + timedelta(days=x) for x in range(0, (to_date - from_date).days)]
     retval.reverse()
     return retval
+
+
+def utc_datetime(dt, station):
+    """Returns the datetime dt converted to the UTC timezone"""
+    if not dt.tzinfo:
+        timezone = pytz.timezone(station['timezone'])
+        dt = timezone.localize(dt, is_dst=None)
+    return dt.astimezone(pytz.utc)
+
+
+def localize_datetime(dt, station):
+    """Returns the datetime dt in the station's local timezone"""
+    return dt.astimezone(pytz.timezone(station['timezone']))
