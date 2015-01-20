@@ -9,6 +9,10 @@ class Tag(models.Model):
 class Station(models.Model):
     name = models.CharField(max_length=32)
     country = CountryField()
+    timezone = models.CharField(max_length=64)
+    class_name = models.CharField(max_length=32)
+    start_date = models.DateField()
+    last_scraped = models.DateTimeField()
 
 
 class NormalizedSong(models.Model):

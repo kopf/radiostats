@@ -10,9 +10,9 @@ gevent.monkey.patch_socket()
 import gevent
 
 from radiostats.settings import LOG_DIR
+from scraper import scrapers
 from scraper.lib import create_date_range
 from scraper.models import Station, Song, Play
-from scraper.scrapers import SCRAPERS
 
 log = logbook.Logger()
 
@@ -22,38 +22,35 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         threads = []
-        for station_name in SCRAPERS:
-            runner = GenericRunner(station_name)
+        for station in Station.objects.all():
+            runner = GenericRunner(station)
             threads.append(gevent.spawn(runner.run))
         gevent.joinall(threads)
 
 
 class GenericRunner(object):
-    def __init__(self, station_name):
-        self.station_name = station_name
-        self.station, _ = Station.objects.get_or_create(
-            name=station_name,
-            country=SCRAPERS[station_name]['country'])
+    def __init__(self, station):
+        self.station = station
         self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
         log_handler = logbook.FileHandler(
-            os.path.join(LOG_DIR, u'{0}.log'.format(self.station_name)))
+            os.path.join(LOG_DIR, u'{0}.log'.format(self.station.name)))
         log_handler.push_thread()
         for date in self.date_range:
-            scraper = SCRAPERS[self.station_name]['cls'](date)
-            log.info('Scraping {0} for date {1}...'.format(
-                self.station_name, date.strftime('%Y-%m-%d')))
+            scraper = getattr(scrapers, self.scraper.class_name)(date)
+            log.info(u'Scraping {0} for date {1}...'.format(
+                self.station.name, date.strftime('%Y-%m-%d')))
             try:
                 scraper.scrape()
             except LookupError:
-                msg = 'No data found for date {0} on {1}.'
-                log.error(msg.format(date.strftime('%Y%m%d'), self.station_name))
+                msg = u'No data found for date {0} on {1}.'
+                log.error(msg.format(date.strftime('%Y%m%d'), self.station.name))
                 continue
             except Exception as e:
-                msg = 'Uncaught exception occurred scraping {0} on {1}:\n{2}'
+                msg = u'Uncaught exception occurred scraping {0} on {1}:\n{2}'
                 msg = msg.format(
-                    self.station_name, date.strftime('%Y%m%d'), e.message)
+                    self.station.name, date.strftime('%Y%m%d'), e.message)
                 log.error(msg)
                 continue
             added_already = 0
@@ -76,8 +73,10 @@ class GenericRunner(object):
                     added_already += 1
                     continue
             if scraper.tracks and added_already == len(scraper.tracks):
-                log.info('End reached for {0} at {1}. Stopping...'.format(
-                    self.station_name, date))
+                log.info(u'End reached for {0} at {1}. Stopping...'.format(
+                    self.station.name, date))
+                self.scraper.last_scraped = datetime.utcnow()
+                self.scraper.save()
                 return
 
     @property
@@ -87,6 +86,5 @@ class GenericRunner(object):
             latest = Play.objects.filter(
                 station=self.station).order_by('-time').first().time
         except AttributeError:
-            latest = datetime.strptime(
-                SCRAPERS[self.station_name]['start_date'], '%Y%m%d')
+            latest = self.station.start_date
         return create_date_range(latest)
