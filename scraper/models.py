@@ -30,6 +30,7 @@ class Song(models.Model):
 
 
 class Play(models.Model):
+    local_time = models.DateTimeField()
     time = models.DateTimeField()
     song = models.ForeignKey(Song)
     station = models.ForeignKey(Station)

@@ -3,6 +3,7 @@ from datetime import datetime
 import HTMLParser
 import logbook
 import os
+import pytz
 
 from django.core.management.base import BaseCommand
 import gevent.monkey
@@ -61,10 +62,13 @@ class GenericRunner(object):
                 title = self.htmlparser.unescape(track[1])[:256].strip()
                 if not (artist and title):
                     continue
+                localized_datetime = track[2].astimezone(
+                    pytz.timezone(self.station.timezone))
                 song, _ = Song.objects.get_or_create(
                     artist=artist, title=title)
                 _, created = Play.objects.get_or_create(
-                    time=track[2], song=song, station=self.station)
+                    local_time=track[2], time=localized_datetime,
+                    song=song, station=self.station)
                 if not created:
                     # We're encountering tracks we've already added.
                     # Keep trying to add tracks for this date, but
