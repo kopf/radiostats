@@ -38,7 +38,7 @@ def create_date_range(from_date, to_date=None):
 def utc_datetime(dt, station):
     """Returns the datetime dt converted to the UTC timezone"""
     if not dt.tzinfo:
-        timezone = pytz.timezone(station['timezone'])
+        timezone = pytz.timezone(station.timezone)
         dt = timezone.localize(dt, is_dst=None)
     return dt.astimezone(pytz.utc)
 
