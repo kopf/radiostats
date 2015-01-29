@@ -188,41 +188,8 @@ class FluxFMWorldwideScraper(FluxFMScraper):
     cookies = {'mfmloc': 'world'}
 
 
-SCRAPERS = {
-    'SWR1': {
-        'cls': SWR1Scraper,
-        'start_date': '20140213',
-        'country': 'DE',
-        'timezone': 'Europe/Berlin'
-    },
-    'SWR3': {
-        'cls': SWR3Scraper,
-        'start_date': '20130301',
-        'country': 'DE',
-        'timezone': 'Europe/Berlin'
-    },
-    'KEXP': {
-        'cls': KEXPScraper,
-        'start_date': '20010412',
-        'country': 'US',
-        'timezone': 'America/Los_Angeles'
-    },
-    'FluxFMBerlin': {
-        'cls': FluxFMBerlinScraper,
-        'start_date': '20090804',
-        'country': 'DE',
-        'timezone': 'Europe/Berlin'
-    },
-    'FluxFMBremen': {
-        'cls': FluxFMBremenScraper,
-        'start_date': '20110405',
-        'country': 'DE',
-        'timezone': 'Europe/Berlin'
-    },
-    #'FluxFMWorldwide': {
-    #    'cls': FluxFMWorldwideScraper,
-    #    'start_date': '20111103',
-    #    'country': 'DE',
-    #    'timezone': 'Europe/Berlin'
-    #},
-}
+class ByteFMScraper(object):
+    """Dummy Scraper class for ByteFM"""
+    tracks = []
+    def scrape(self):
+        return

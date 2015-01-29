@@ -12,7 +12,7 @@ class Station(models.Model):
     timezone = models.CharField(max_length=64)
     class_name = models.CharField(max_length=32)
     start_date = models.DateField()
-    last_scraped = models.DateTimeField()
+    last_scraped = models.DateTimeField(null=True)
 
 
 class NormalizedSong(models.Model):
