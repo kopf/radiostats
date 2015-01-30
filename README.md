@@ -20,12 +20,9 @@ If you want to help, the best way would be to contribute a scraper for a radio
 station website.
 
 Scrapers can be viewed as plugins defined by individual classes. In order to
-code a scraper, you'll need to make modifications to the
+code a scraper, you'll need to create a scraper class in
 [scrapers.py](https://github.com/kopf/radiostats/blob/master/scraper/scrapers.py)
-file, namely:
-
-* Creating a scraper class that scrapes data from the new radio station's website.
-* Adding an entry to the module-level `SCRAPERS` dict for this new scraper.
+that scrapes data from the new radio station's website.
 
 Each scraper class must have the following attributes:
 
@@ -56,16 +53,3 @@ Scrapers do **not** need to take care of the following:
 * Determining a canonical artist name and song title for entries (the [normalize job](https://github.com/kopf/radiostats/blob/master/scraper/management/commands/normalize.py) takes care of this, querying Last.fm for metadata, so that the application doesn't record "Beatles, The - Taxman" and "The Beatles - Taxman" as two different songs by different artists)
 * Deduplication of mistakenly duplicated tracks on radio websites (the [remove_duplicates job](https://github.com/kopf/radiostats/blob/master/scraper/management/commands/remove_duplicates.py) takes care of this)
 * Retrying GET requests (as long as the `http_get` helper is used)
-
-Once the scraper is written, an entry needs to be added to the `SCRAPERS` dict in the following form:
-
-````
-{
-    "station_name": {
-        "cls": MyStationScraper, # class that should be used
-        "start_date": "20010101", # the earliest date for which playlists are available (YYYYMMDD)
-        "country": "DE", # Two-letter ISO Country code
-        "timezone": "Europe/Berlin" # Timezone of scraped play times. This should be an entry in pytz.all_timezones
-    }
-}
-````

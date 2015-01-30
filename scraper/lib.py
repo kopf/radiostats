@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import pytz
 import time
 
 import requests
@@ -28,8 +29,20 @@ def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
 
 def create_date_range(from_date, to_date=None):
     if to_date is None:
-        to_date = datetime.now()
-    from_date = from_date.replace(hour=0, minute=0, second=0)
+        to_date = datetime.now().date()
     retval = [from_date + timedelta(days=x) for x in range(0, (to_date - from_date).days)]
     retval.reverse()
     return retval
+
+
+def utc_datetime(dt, station):
+    """Returns the datetime dt converted to the UTC timezone"""
+    if not dt.tzinfo:
+        timezone = pytz.timezone(station.timezone)
+        dt = timezone.localize(dt)
+    return dt.astimezone(pytz.utc)
+
+
+def localize_datetime(dt, station):
+    """Returns the datetime dt in the station's local timezone"""
+    return dt.astimezone(pytz.timezone(station['timezone']))

@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logbook
-import HTMLParser
 
 from django.core.management.base import BaseCommand
 
-from scraper.lib import create_date_range
-from scraper.models import Station, Song, Play
-from scraper.scrapers import SCRAPERS
+from scraper.models import Station, Play
 
 
 log = logbook.Logger()
