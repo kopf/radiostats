@@ -54,6 +54,7 @@ class SWR1Scraper(GenericScraper):
         if not main_div:
             self.log.error('No tracks found on SWR1 for date {0}'.format(
                 self.date.strftime('%Y-%m-%d %H:00')))
+            return
         elements = main_div.findAll('li')
         for el in elements:
             time_played = el.find('div', {'class': 'musicItemTime'}).p.text
