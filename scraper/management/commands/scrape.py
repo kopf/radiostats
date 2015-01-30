@@ -38,7 +38,7 @@ class GenericRunner(object):
             os.path.join(LOG_DIR, u'{0}.log'.format(self.station.name)))
         log_handler.push_thread()
         for date in self.date_range:
-            scraper = getattr(scrapers, self.scraper.class_name)(date)
+            scraper = getattr(scrapers, self.station.class_name)(date)
             log.info(u'Scraping {0} for date {1}...'.format(
                 self.station.name, date.strftime('%Y-%m-%d')))
             try:
