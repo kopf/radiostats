@@ -39,7 +39,7 @@ def utc_datetime(dt, station):
     """Returns the datetime dt converted to the UTC timezone"""
     if not dt.tzinfo:
         timezone = pytz.timezone(station.timezone)
-        dt = timezone.localize(dt, is_dst=None)
+        dt = timezone.localize(dt)
     return dt.astimezone(pytz.utc)
 
 

@@ -3,7 +3,6 @@ from datetime import datetime
 import HTMLParser
 import logbook
 import os
-import pytz
 
 from django.core.management.base import BaseCommand
 import gevent.monkey
@@ -12,7 +11,7 @@ import gevent
 
 from radiostats.settings import LOG_DIR
 from scraper import scrapers
-from scraper.lib import create_date_range
+from scraper.lib import create_date_range, utc_datetime
 from scraper.models import Station, Song, Play
 
 log = logbook.Logger()
@@ -62,12 +61,11 @@ class GenericRunner(object):
                 title = self.htmlparser.unescape(track[1])[:256].strip()
                 if not (artist and title):
                     continue
-                localized_datetime = track[2].astimezone(
-                    pytz.timezone(self.station.timezone))
                 song, _ = Song.objects.get_or_create(
                     artist=artist, title=title)
                 _, created = Play.objects.get_or_create(
-                    local_time=track[2], time=localized_datetime,
+                    local_time=track[2],
+                    time=utc_datetime(track[2], self.station),
                     song=song, station=self.station)
                 if not created:
                     # We're encountering tracks we've already added.
@@ -79,8 +77,8 @@ class GenericRunner(object):
             if scraper.tracks and added_already == len(scraper.tracks):
                 log.info(u'End reached for {0} at {1}. Stopping...'.format(
                     self.station.name, date))
-                self.scraper.last_scraped = datetime.utcnow()
-                self.scraper.save()
+                self.station.last_scraped = datetime.utcnow()
+                self.station.save()
                 return
 
     @property
