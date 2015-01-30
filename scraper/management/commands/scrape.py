@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         threads = []
-        for station in Station.objects.all():
+        for station in Station.objects.filter(enabled=True):
             runner = GenericRunner(station)
             threads.append(gevent.spawn(runner.run))
         gevent.joinall(threads)

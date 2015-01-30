@@ -13,6 +13,7 @@ class Station(models.Model):
     class_name = models.CharField(max_length=32)
     start_date = models.DateField()
     last_scraped = models.DateTimeField(null=True)
+    enabled = models.BooleanField(default=True)
 
 
 class NormalizedSong(models.Model):
