@@ -86,7 +86,7 @@ class GenericRunner(object):
         """A list of dates to be processed"""
         try:
             latest = Play.objects.filter(
-                station=self.station).order_by('-time').first().time
+                station=self.station).order_by('-time').first().local_time.date()
         except AttributeError:
             latest = self.station.start_date
         return create_date_range(latest)
