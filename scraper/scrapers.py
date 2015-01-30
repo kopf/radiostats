@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
 import logbook
@@ -22,7 +24,8 @@ class GenericScraper(object):
             second = int(text_time[2])
         except IndexError:
             second = 0
-        return self.date.replace(hour=hour, minute=minute, second=second)
+        return datetime(self.date.year, self.date.month,self.date.day,
+                      hour, minute, second)
 
     def scrape(self):
         """General scrape workflow. Can be overridden if necessary."""
@@ -140,7 +143,9 @@ class KEXPScraper(GenericScraper):
                 title = row.find('div', {'class': 'TrackName'}).text
                 time = row.find('div', {'class': 'AirDate'}).span.text
                 time = dateutil_parser.parse(time)
-                track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
+                dt = datetime(self.date.year, self.date.month,self.date.day,
+                              time.hour, time.minute, 0)
+                track = (artist, title, dt)
                 self.tracks.append(track)
             except AttributeError:
                 # "Air break"
@@ -171,7 +176,9 @@ class FluxFMScraper(GenericScraper):
                 self.log.error(u'Failed to extract track from FluxFM: {0}'.format(row))
                 continue
             time = self.time_to_datetime(time, ':')
-            track = (artist, title, self.date.replace(hour=time.hour, minute=time.minute, second=0))
+            dt = datetime(self.date.year, self.date.month,self.date.day,
+                          time.hour, time.minute, 0)
+            track = (artist, title, dt)
             self.tracks.append(track)
         return True
 
