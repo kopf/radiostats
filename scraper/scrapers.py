@@ -191,5 +191,9 @@ class FluxFMWorldwideScraper(FluxFMScraper):
 class ByteFMScraper(object):
     """Dummy Scraper class for ByteFM"""
     tracks = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
     def scrape(self):
         return
