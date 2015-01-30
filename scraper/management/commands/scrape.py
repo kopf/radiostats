@@ -37,7 +37,9 @@ class GenericRunner(object):
         log_handler = logbook.FileHandler(
             os.path.join(LOG_DIR, u'{0}.log'.format(self.station.name)))
         log_handler.push_thread()
+        last_date = None
         for date in self.date_range:
+            last_date = date
             scraper = getattr(scrapers, self.station.class_name)(date)
             log.info(u'Scraping {0} for date {1}...'.format(
                 self.station.name, date.strftime('%Y-%m-%d')))
@@ -75,11 +77,12 @@ class GenericRunner(object):
                     added_already += 1
                     continue
             if scraper.tracks and added_already == len(scraper.tracks):
-                log.info(u'End reached for {0} at {1}. Stopping...'.format(
-                    self.station.name, date))
-                self.station.last_scraped = datetime.utcnow()
-                self.station.save()
-                return
+                break
+        log.info(u'End reached for {0} at {1}. Stopping...'.format(
+                 self.station.name, last_date))
+        self.station.last_scraped = datetime.utcnow()
+        self.station.save()
+        return
 
     @property
     def date_range(self):
