@@ -28,7 +28,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         FILE_LOGGER.push_thread()
         i = 0
-        for track in Song.objects.filter(normalized=None):
+        for track in Song.objects.filter(last_scraped=None):
             self.normalize(track)
             track.last_scraped = datetime.utcnow()
             track.save()
