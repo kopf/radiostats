@@ -27,7 +27,7 @@ class Song(models.Model):
     artist = models.CharField(max_length=256)
     title = models.CharField(max_length=256)
     normalized = models.ForeignKey(NormalizedSong, null=True)
-    normalized_at = models.DateTimeField(null=True)
+    last_scraped = models.DateTimeField(null=True)
 
 
 class Play(models.Model):
