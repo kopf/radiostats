@@ -28,13 +28,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         FILE_LOGGER.push_thread()
         i = 0
-        for track in Song.objects.filter(last_scraped=None):
+        tracks = Song.objects.filter(last_scraped=None)
+        for track in tracks:
             self.normalize(track)
             track.last_scraped = datetime.utcnow()
             track.save()
             i += 1
             if i % 10 == 0:
-                log.info('Done {0}...'.format(i))
+                log.info('Done {0} of {1}...'.format(i, len(tracks)))
 
     def _get(self, url):
         """HTTP GET and decode JSON"""
