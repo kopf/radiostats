@@ -1,0 +1,102 @@
+[
+{
+    "fields": {
+        "station": 3,
+        "song": 1,
+        "local_time": "2013-03-19T00:18:27Z",
+        "time": "2013-03-18T23:18:27Z"
+    },
+    "model": "scraper.play",
+    "pk": 1
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 2,
+        "local_time": "2013-03-19T00:24:56Z",
+        "time": "2013-03-18T23:24:56Z"
+    },
+    "model": "scraper.play",
+    "pk": 2
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 3,
+        "local_time": "2013-03-19T00:31:06Z",
+        "time": "2013-03-18T23:31:06Z"
+    },
+    "model": "scraper.play",
+    "pk": 3
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 4,
+        "local_time": "2013-03-19T00:36:08Z",
+        "time": "2013-03-18T23:36:08Z"
+    },
+    "model": "scraper.play",
+    "pk": 4
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 5,
+        "local_time": "2013-03-19T00:40:51Z",
+        "time": "2013-03-18T23:40:51Z"
+    },
+    "model": "scraper.play",
+    "pk": 5
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 6,
+        "local_time": "2013-03-19T00:44:15Z",
+        "time": "2013-03-18T23:44:15Z"
+    },
+    "model": "scraper.play",
+    "pk": 6
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 7,
+        "local_time": "2013-03-19T00:49:48Z",
+        "time": "2013-03-18T23:49:48Z"
+    },
+    "model": "scraper.play",
+    "pk": 7
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 8,
+        "local_time": "2013-03-19T00:53:42Z",
+        "time": "2013-03-18T23:53:42Z"
+    },
+    "model": "scraper.play",
+    "pk": 8
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 9,
+        "local_time": "2013-03-19T00:57:53Z",
+        "time": "2013-03-18T23:57:53Z"
+    },
+    "model": "scraper.play",
+    "pk": 9
+},
+{
+    "fields": {
+        "station": 3,
+        "song": 10,
+        "local_time": "2013-03-19T01:06:02Z",
+        "time": "2013-03-19T00:06:02Z"
+    },
+    "model": "scraper.play",
+    "pk": 10
+}
+]

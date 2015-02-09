@@ -1,0 +1,72 @@
+[
+{
+    "fields": {
+        "name": "rock"
+    },
+    "model": "scraper.tag",
+    "pk": 1
+},
+{
+    "fields": {
+        "name": "alternative"
+    },
+    "model": "scraper.tag",
+    "pk": 2
+},
+{
+    "fields": {
+        "name": "pop"
+    },
+    "model": "scraper.tag",
+    "pk": 3
+},
+{
+    "fields": {
+        "name": "train"
+    },
+    "model": "scraper.tag",
+    "pk": 4
+},
+{
+    "fields": {
+        "name": "alternative rock"
+    },
+    "model": "scraper.tag",
+    "pk": 5
+},
+{
+    "fields": {
+        "name": "classic rock"
+    },
+    "model": "scraper.tag",
+    "pk": 6
+},
+{
+    "fields": {
+        "name": "aerosmith"
+    },
+    "model": "scraper.tag",
+    "pk": 7
+},
+{
+    "fields": {
+        "name": "hard rock"
+    },
+    "model": "scraper.tag",
+    "pk": 8
+},
+{
+    "fields": {
+        "name": "90s"
+    },
+    "model": "scraper.tag",
+    "pk": 9
+},
+{
+    "fields": {
+        "name": "soul"
+    },
+    "model": "scraper.tag",
+    "pk": 10
+}
+]

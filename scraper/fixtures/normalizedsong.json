@@ -1,0 +1,162 @@
+[
+{
+    "fields": {
+        "mbid": "80a16532-350f-4ad3-8c5b-f9da541854d1",
+        "title": "50 Ways to Say Goodbye",
+        "tags": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "artist": "Train"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 1
+},
+{
+    "fields": {
+        "mbid": "988e0b3a-8f2d-48f8-afdd-73f05790a5f4",
+        "title": "Crazy",
+        "tags": [
+            1,
+            6,
+            7,
+            8,
+            9
+        ],
+        "artist": "Aerosmith"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 2
+},
+{
+    "fields": {
+        "mbid": "515ad2ea-cdad-4c61-8b0b-52ad2e3d9a83",
+        "title": "I Couldn\u2019t Care Less",
+        "tags": [
+            3,
+            10,
+            11,
+            12,
+            13
+        ],
+        "artist": "Leslie Clio"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 3
+},
+{
+    "fields": {
+        "mbid": "d9275d9e-bdc8-4d19-8701-0d05ccf4be7e",
+        "title": "1, 2, 3, 4",
+        "tags": [
+            1,
+            3,
+            14,
+            15,
+            16
+        ],
+        "artist": "Plain White T's"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 4
+},
+{
+    "fields": {
+        "mbid": "4d362dfc-9bb6-4509-a26e-6752a6171892",
+        "title": "Heart on the Line",
+        "tags": [
+            17,
+            18,
+            19,
+            20,
+            21
+        ],
+        "artist": "BLITZKIDS mvt."
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 5
+},
+{
+    "fields": {
+        "mbid": "b2c2b238-28bf-3e9b-bc92-9a4c8f3368e2",
+        "title": "The Wild Boys",
+        "tags": [
+            1,
+            3,
+            22,
+            23,
+            24
+        ],
+        "artist": "Duran Duran"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 6
+},
+{
+    "fields": {
+        "mbid": "77617256-c2ce-46b5-b8e5-9ff7894a5397",
+        "title": "Stay",
+        "tags": [
+            3,
+            25,
+            26,
+            27,
+            28
+        ],
+        "artist": "Rihanna"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 7
+},
+{
+    "fields": {
+        "mbid": "2516a7c2-ba9c-4a5b-9ec8-e243bbeb1e21",
+        "title": "Canned Heat",
+        "tags": [
+            29,
+            30,
+            31,
+            32,
+            33
+        ],
+        "artist": "Jamiroquai"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 8
+},
+{
+    "fields": {
+        "mbid": "588d37f3-6c84-4ee5-8c35-c1ffd424dd0d",
+        "title": "Mirrors",
+        "tags": [
+            3,
+            34,
+            35,
+            36,
+            37
+        ],
+        "artist": "Justin Timberlake"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 9
+},
+{
+    "fields": {
+        "mbid": "bcf54c83-22bf-413b-88ca-aa72e2a70aaa",
+        "title": "Just Hold Me",
+        "tags": [
+            3,
+            11,
+            38,
+            39,
+            40
+        ],
+        "artist": "Maria Mena"
+    },
+    "model": "scraper.normalizedsong",
+    "pk": 10
+}
+]

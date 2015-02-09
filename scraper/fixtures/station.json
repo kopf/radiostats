@@ -1,0 +1,93 @@
+[
+{
+    "fields": {
+        "name": "KEXP",
+        "class_name": "KEXPScraper",
+        "country": "US",
+        "enabled": true,
+        "last_scraped": "2015-02-07T19:04:40Z",
+        "timezone": "America/Los_Angeles",
+        "start_date": "2001-04-12"
+    },
+    "model": "scraper.station",
+    "pk": 1
+},
+{
+    "fields": {
+        "name": "SWR1",
+        "class_name": "SWR1Scraper",
+        "country": "DE",
+        "enabled": true,
+        "last_scraped": "2015-02-07T19:04:51Z",
+        "timezone": "Europe/Berlin",
+        "start_date": "2014-02-13"
+    },
+    "model": "scraper.station",
+    "pk": 2
+},
+{
+    "fields": {
+        "name": "SWR3",
+        "class_name": "SWR3Scraper",
+        "country": "DE",
+        "enabled": true,
+        "last_scraped": "2015-02-07T19:04:50Z",
+        "timezone": "Europe/Berlin",
+        "start_date": "2013-03-01"
+    },
+    "model": "scraper.station",
+    "pk": 3
+},
+{
+    "fields": {
+        "name": "FluxFMBremen",
+        "class_name": "FluxFMBremenScraper",
+        "country": "DE",
+        "enabled": true,
+        "last_scraped": "2015-02-07T19:03:36Z",
+        "timezone": "Europe/Berlin",
+        "start_date": "2011-04-05"
+    },
+    "model": "scraper.station",
+    "pk": 4
+},
+{
+    "fields": {
+        "name": "FluxFMBerlin",
+        "class_name": "FluxFMBerlinScraper",
+        "country": "DE",
+        "enabled": true,
+        "last_scraped": "2015-02-07T19:03:34Z",
+        "timezone": "Europe/Berlin",
+        "start_date": "2009-08-04"
+    },
+    "model": "scraper.station",
+    "pk": 5
+},
+{
+    "fields": {
+        "name": "ByteFM",
+        "class_name": "ByteFMScraper",
+        "country": "DE",
+        "enabled": false,
+        "last_scraped": null,
+        "timezone": "Europe/Berlin",
+        "start_date": "1900-01-01"
+    },
+    "model": "scraper.station",
+    "pk": 6
+},
+{
+    "fields": {
+        "name": "FluxFMWorldwide",
+        "class_name": "FluxFMWorldwideScraper",
+        "country": "DE",
+        "enabled": false,
+        "last_scraped": null,
+        "timezone": "Europe/Berlin",
+        "start_date": "2011-11-03"
+    },
+    "model": "scraper.station",
+    "pk": 7
+}
+]
