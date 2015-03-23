@@ -25,7 +25,7 @@ class GenericScraper(object):
         except IndexError:
             second = 0
         return datetime(self.date.year, self.date.month,self.date.day,
-                      hour, minute, second)
+                        hour, minute, second)
 
     def scrape(self):
         """General scrape workflow. Can be overridden if necessary."""
