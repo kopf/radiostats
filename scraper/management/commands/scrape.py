@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from datetime import datetime
 import HTMLParser
-import logbook
+import traceback
 import os
 
+import logbook
 from django.core.management.base import BaseCommand
 import gevent.monkey
 gevent.monkey.patch_socket()
@@ -51,7 +52,8 @@ class GenericRunner(object):
             except Exception as e:
                 msg = u'Uncaught exception occurred scraping {0} on {1}:\n{2}'
                 msg = msg.format(
-                    self.station.name, date.strftime('%Y%m%d'), e.message)
+                    self.station.name, date.strftime('%Y%m%d'),
+                    traceback.format_exc())
                 log.error(msg)
                 continue
             added_already = 0
