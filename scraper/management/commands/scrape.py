@@ -34,8 +34,7 @@ class GenericRunner(object):
         self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
-        log_handler = logbook.FileHandler(
-            os.path.join(LOG_DIR, u'{0}.log'.format(self.station.name)))
+        log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'))
         log_handler.push_thread()
         last_date = None
         for date in self.date_range:
