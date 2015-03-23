@@ -43,8 +43,8 @@ class SWR1Scraper(GenericScraper):
 
     @property
     def tracklist_urls(self):
-        tags = self.soup.find('ul', {'class': 'progTimeList'}).findAll('a')
-        return [a['href'] for a in tags]
+        timelist = self.soup.find('ul', {'class': 'progTimeList pulldownlist'})
+        return [a['href'] for a in timelist.findAll('a')]
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of
@@ -70,7 +70,9 @@ class SWR1Scraper(GenericScraper):
     def scrape(self):
         resp = http_get(self.base_url)
         soup = BeautifulSoup(resp.text)
-        date_links = [a['href'] for a in soup.find('ul', {'class': 'progDays'}).findAll('a')]
+        date_links = []
+        for cell in soup.findAll('span', {'class': 'progDayCell'}):
+            date_links.extend([a['href'] for a in cell.findAll('a')])
         for url in date_links:
             if 'date={0}'.format(self.date.strftime('%Y%m%d')) in url:
                 resp = http_get(url)
