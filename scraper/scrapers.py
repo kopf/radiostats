@@ -216,10 +216,10 @@ class ByteFMScraper(object):
     def _fetch_trackdata(self):
         """Downloads and removes trackdata from server where cronjob is running"""
         fab.env.host_string = '54a6ce8de0b8cd9ae000011c@cronjobs-playlyst.rhcloud.com'
-        DATA_DIR = os.path.join(
+        DATA_DIR = '%s/%s' % (
             fab.run("echo $OPENSHIFT_HOMEDIR"), 'app-root/data')
-        LOCK_FILE = os.path.join(DATA_DIR, 'scraper.lock')
-        CSV_FILE = os.path.join(DATA_DIR, 'bytefm.csv')
+        LOCK_FILE = '%s/%s' % (DATA_DIR, 'scraper.lock')
+        CSV_FILE = '%s/%s' % (DATA_DIR, 'bytefm.csv')
         while fab_exists(LOCK_FILE):
             self.log.info('ByteFM lock file exists, waiting...')
             time.sleep(2)
