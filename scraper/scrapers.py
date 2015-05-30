@@ -1,7 +1,13 @@
 from datetime import datetime
+import os
+import time
+from StringIO import StringIO
 
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
+from fabric import api as fab
+from fabric.contrib.files import exists as fab_exists
+from fabric.operations import get as fab_get
 import logbook
 
 from scraper.lib import http_get
@@ -9,6 +15,7 @@ from scraper.lib import http_get
 
 class GenericScraper(object):
     cookies = {}
+    terminate_early = False
 
     def __init__(self, date):
         self.date = date
@@ -199,11 +206,47 @@ class FluxFMWorldwideScraper(FluxFMScraper):
 
 
 class ByteFMScraper(object):
-    """Dummy Scraper class for ByteFM"""
-    tracks = []
+    """Actually a 'Collector' that fetches the scraped tracks from a server"""
+    terminate_early = True
 
     def __init__(self, *args, **kwargs):
-        pass
+        self.tracks = []
+        self.log = logbook.Logger()
+
+    def _fetch_trackdata(self):
+        """Downloads and removes trackdata from server where cronjob is running"""
+        fab.env.host_string = '54a6ce8de0b8cd9ae000011c@cronjobs-playlyst.rhcloud.com'
+        DATA_DIR = os.path.join(
+            fab.run("echo $OPENSHIFT_HOMEDIR"), 'app-root/data')
+        LOCK_FILE = os.path.join(DATA_DIR, 'scraper.lock')
+        CSV_FILE = os.path.join(DATA_DIR, 'bytefm.csv')
+        while fab_exists(LOCK_FILE):
+            self.log.info('ByteFM lock file exists, waiting...')
+            time.sleep(2)
+
+        self.log.info('Creating ByteFM lock file...')
+        fab.run('touch %s' % LOCK_FILE)
+        data = StringIO()
+        fab_get(CSV_FILE, data)
+        self.log.info('Replacing old CSV file on server...')
+        fab.run('head -n 1 %s > %s' % (CSV_FILE, CSV_FILE))
+        self.log.info('Removing ByteFM lock file...')
+        fab.run('rm -f %s' % LOCK_FILE)
+        return data.getvalue()
+
 
     def scrape(self):
-        return
+        trackdata = self._fetch_trackdata()
+        for line in trackdata.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            line = line.split('\t')
+            time = datetime.strptime(line[0], '%Y-%m-%d %H:%M:%S')
+            try:
+                artist, title = line[1].split(' - ')
+            except ValueError:
+                # No data, just a '-' string
+                continue
+            if not (artist == 'Nachrichten' and 'Uhr' in title):
+                self.tracks.append((artist, title, time))
