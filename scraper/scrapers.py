@@ -229,7 +229,7 @@ class ByteFMScraper(object):
         data = StringIO()
         fab_get(CSV_FILE, data)
         self.log.info('Replacing old CSV file on server...')
-        fab.run('head -n 1 %s > %s' % (CSV_FILE, CSV_FILE))
+        fab.run('tail -n 1 %s > %s' % (CSV_FILE, CSV_FILE))
         self.log.info('Removing ByteFM lock file...')
         fab.run('rm -f %s' % LOCK_FILE)
         return data.getvalue()
