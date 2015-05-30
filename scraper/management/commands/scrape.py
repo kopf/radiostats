@@ -3,12 +3,10 @@ from datetime import datetime
 import HTMLParser
 import traceback
 import os
+from optparse import make_option
 
 import logbook
 from django.core.management.base import BaseCommand
-import gevent.monkey
-gevent.monkey.patch_socket()
-import gevent
 
 from radiostats.settings import LOG_DIR
 from scraper import scrapers
@@ -20,13 +18,23 @@ log = logbook.Logger()
 
 class Command(BaseCommand):
     help = 'Scrapes radio stations for new tracks'
+    option_list = BaseCommand.option_list + (
+        make_option(
+            "-s",
+            "--station",
+            dest = "station_name",
+            help = "specify name of station to scrape"
+        ),
+    )
 
     def handle(self, *args, **options):
-        threads = []
-        for station in Station.objects.filter(enabled=True):
+        if options['station_name']:
+            stations = Station.objects.filter(name=options['station_name'])
+        else:
+            stations = Station.objects.filter(enabled=True)
+        for station in stations:
             runner = GenericRunner(station)
-            threads.append(gevent.spawn(runner.run))
-        gevent.joinall(threads)
+            runner.run()
 
 
 class GenericRunner(object):
