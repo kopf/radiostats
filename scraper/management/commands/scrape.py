@@ -18,7 +18,6 @@ log = logbook.Logger()
 
 class Command(BaseCommand):
     help = 'Scrapes radio stations for new tracks'
-    station_name = None
     option_list = BaseCommand.option_list + (
         make_option(
             "-s",
@@ -29,8 +28,8 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        if self.station_name:
-            stations = Station.objects.filter(name=self.station_name)
+        if options['station_name']:
+            stations = Station.objects.filter(name=options['station_name'])
         else:
             stations = Station.objects.filter(enabled=True)
         for station in stations:
