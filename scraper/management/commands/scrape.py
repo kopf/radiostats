@@ -7,6 +7,7 @@ from optparse import make_option
 
 import logbook
 from django.core.management.base import BaseCommand
+import subprocess
 
 from radiostats.settings import LOG_DIR
 from scraper import scrapers
@@ -29,12 +30,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options['station_name']:
-            stations = Station.objects.filter(name=options['station_name'])
-        else:
-            stations = Station.objects.filter(enabled=True)
-        for station in stations:
+            station = Station.objects.filter(name=options['station_name'])[0]
             runner = GenericRunner(station)
             runner.run()
+        else:
+            stations = Station.objects.filter(enabled=True)
+            processes = []
+            for station in stations:
+                processes.append(subprocess.Popen(['python', 'manage.py', 'scrape', '-s', station.name]))
+            [p.wait() for p in processes]
 
 
 class GenericRunner(object):
@@ -43,7 +47,7 @@ class GenericRunner(object):
         self.htmlparser = HTMLParser.HTMLParser()
 
     def run(self):
-        log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'))
+        log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'), bubble=True)
         log_handler.push_thread()
         last_date = None
         for date in self.date_range:
