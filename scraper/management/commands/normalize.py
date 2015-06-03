@@ -149,6 +149,8 @@ class Command(BaseCommand):
             if ';' in artist:
                 # Try slicing into multiple artists and retry using the first one listed
                 return self.query_lastfm(artist.split(';')[0], title)
+
+            # Cannot continue without an MBID.
             return None
         mbid, fixed_artist, fixed_title = self.query_musicbrainz(
             mbid, fixed_artist, fixed_title)
