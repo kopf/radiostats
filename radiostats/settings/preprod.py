@@ -1,7 +1,7 @@
 from base import *
 from auth import DB
 
-DEBUG = False
+DEBUG = True
 
 DATABASES = {
     'default': {
