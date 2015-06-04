@@ -1,14 +1,11 @@
 from datetime import datetime
-import os
-import time
-from StringIO import StringIO
 
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
-from fabric import api as fab
-from fabric.contrib.files import exists as fab_exists
-from fabric.operations import get as fab_get
+from django.conf import settings
 import logbook
+import requests
+import pytz
 
 from scraper.lib import http_get
 
@@ -16,6 +13,7 @@ from scraper.lib import http_get
 class GenericScraper(object):
     cookies = {}
     terminate_early = False
+    utc_datetimes = False
 
     def __init__(self, date):
         self.date = date
@@ -42,6 +40,42 @@ class GenericScraper(object):
             result = self.extract_tracks()
             if not result:
                 self.log.warn('No tracks found in url {0}'.format(url))
+
+
+class GenericLastFMScraper(object):
+    terminate_early = True
+    base_url = ('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks'
+                '&user={user}&api_key={api_key}&format=json&limit=200')
+    utc_datetimes = True
+
+    def __init__(self, *args):
+        self.tracks = []
+        self.log = logbook.Logger()
+
+    def scrape(self):
+        url = self.base_url.format(
+            user=self.username, api_key=settings.LASTFM_API_KEY) + '&page={page}'
+
+        # Last.fm will respond with the first tracks played by an account
+        # when we request pages that are out of bounds.
+        # So, keep track of what was the first track on the last page,
+        # and compare it with the first track on the current page. If identical,
+        # break.
+        first_track = {}
+        for page in range(1, 99999):
+            tracks = requests.get(url.format(page=page)).json()['recenttracks']['track']
+            self.log.info('Scraping Last.fm username %s (page %s)' % (self.username, page))
+            if tracks[0] == first_track:
+                break
+            first_track = tracks[0]
+            for track in tracks:
+                if 'date' not in track:
+                    # currently playing
+                    continue
+                artist = track['artist']['#text']
+                title = track['name']
+                utc_time = datetime.utcfromtimestamp(track['date']['uts'])
+                self.tracks.append((artist, title, utc_time))
 
 
 class SWR1Scraper(GenericScraper):
@@ -205,48 +239,5 @@ class FluxFMWorldwideScraper(FluxFMScraper):
     cookies = {'mfmloc': 'world'}
 
 
-class ByteFMScraper(object):
-    """Actually a 'Collector' that fetches the scraped tracks from a server"""
-    terminate_early = True
-
-    def __init__(self, *args, **kwargs):
-        self.tracks = []
-        self.log = logbook.Logger()
-
-    def _fetch_trackdata(self):
-        """Downloads and removes trackdata from server where cronjob is running"""
-        fab.env.host_string = '54a6ce8de0b8cd9ae000011c@cronjobs-playlyst.rhcloud.com'
-        DATA_DIR = '%s/%s' % (
-            fab.run("echo $OPENSHIFT_HOMEDIR"), 'app-root/data')
-        LOCK_FILE = '%s/%s' % (DATA_DIR, 'scraper.lock')
-        CSV_FILE = '%s/%s' % (DATA_DIR, 'bytefm.csv')
-        while fab_exists(LOCK_FILE):
-            self.log.info('ByteFM lock file exists, waiting...')
-            time.sleep(2)
-
-        self.log.info('Creating ByteFM lock file...')
-        fab.run('touch %s' % LOCK_FILE)
-        data = StringIO()
-        fab_get(CSV_FILE, data)
-        self.log.info('Replacing old CSV file on server...')
-        fab.run('tail -n 1 %s > %s' % (CSV_FILE, CSV_FILE))
-        self.log.info('Removing ByteFM lock file...')
-        fab.run('rm -f %s' % LOCK_FILE)
-        return data.getvalue()
-
-
-    def scrape(self):
-        trackdata = self._fetch_trackdata()
-        for line in trackdata.split('\n'):
-            line = line.strip()
-            if not line:
-                continue
-            line = line.split('\t')
-            time = datetime.strptime(line[0], '%Y-%m-%d %H:%M:%S')
-            try:
-                artist, title = line[1].split(' - ')
-            except ValueError:
-                # No data, just a '-' string
-                continue
-            if not (artist == 'Nachrichten' and 'Uhr' in title):
-                self.tracks.append((artist, title, time))
+class ByteFMScraper(GenericLastFMScraper):
+    username = 'ByteFM'

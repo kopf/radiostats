@@ -4,6 +4,7 @@ import HTMLParser
 import traceback
 import os
 from optparse import make_option
+import pytz
 
 import logbook
 from django.core.management.base import BaseCommand
@@ -78,9 +79,18 @@ class GenericRunner(object):
                     continue
                 song, _ = Song.objects.get_or_create(
                     artist=artist, title=title)
+                if scraper.utc_datetimes:
+                    utc_tz = pytz.timezone('UTC')
+                    utc_dt = utc_tz.localize(track[2])
+                    local_tz = pytz.timezone(self.station['timezone'])
+                    local_time = local_tz.normalize(utc_dt.astimezone(local_tz))
+                    utc_time = track[2]
+                else:
+                    local_time = track[2]
+                    utc_time = utc_datetime(track[2], self.station)
                 _, created = Play.objects.get_or_create(
-                    local_time=track[2],
-                    time=utc_datetime(track[2], self.station),
+                    local_time=local_time,
+                    time=utc_time,
                     song=song, station=self.station)
                 if not created:
                     # We're encountering tracks we've already added.
