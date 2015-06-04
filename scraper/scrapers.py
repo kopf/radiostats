@@ -54,10 +54,10 @@ class GenericLastFMScraper(object):
 
     def _get_tracks(self, url, page):
         try:
-            requests.get(url.format(page=page)).json()['recenttracks']['track']
+            return requests.get(url.format(page=page)).json()['recenttracks']['track']
         except LookupError:
             self.log.error('Error getting tracks from Last.fm for %s, retrying...' % self.username)
-            return self._get_tracks(page)
+            return self._get_tracks(url, page)
 
     def scrape(self):
         url = self.base_url.format(
