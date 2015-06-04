@@ -84,7 +84,7 @@ class GenericRunner(object):
                     utc_dt = utc_tz.localize(track[2])
                     local_tz = pytz.timezone(self.station['timezone'])
                     local_time = local_tz.normalize(utc_dt.astimezone(local_tz))
-                    utc_time = track[2]
+                    utc_time = pytz.utc.localize(track[2])
                 else:
                     local_time = track[2]
                     utc_time = utc_datetime(track[2], self.station)
