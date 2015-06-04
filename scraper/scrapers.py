@@ -74,7 +74,7 @@ class GenericLastFMScraper(object):
                     continue
                 artist = track['artist']['#text']
                 title = track['name']
-                utc_time = datetime.utcfromtimestamp(track['date']['uts'])
+                utc_time = datetime.utcfromtimestamp(int(track['date']['uts']))
                 self.tracks.append((artist, title, utc_time))
 
 
