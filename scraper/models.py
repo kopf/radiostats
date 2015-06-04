@@ -5,6 +5,9 @@ from django_countries.fields import CountryField
 class Tag(models.Model):
     name = models.CharField(max_length=32)
 
+    def __unicode__(self):
+        return self.name
+
 
 class Station(models.Model):
     name = models.CharField(max_length=32)
@@ -15,12 +18,18 @@ class Station(models.Model):
     last_scraped = models.DateTimeField(null=True)
     enabled = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return self.name
+
 
 class NormalizedSong(models.Model):
     mbid = models.CharField(max_length=36)
     artist = models.CharField(max_length=256)
     title = models.CharField(max_length=256)
     tags = models.ManyToManyField(Tag, null=True)
+
+    def __unicode__(self):
+        return '%s - %s' % (self.artist, self.title)
 
 
 class Song(models.Model):
@@ -29,10 +38,12 @@ class Song(models.Model):
     normalized = models.ForeignKey(NormalizedSong, null=True)
     last_scraped = models.DateTimeField(null=True)
 
+    def __unicode__(self):
+        return '%s - %s' % (self.artist, self.title)
+
 
 class Play(models.Model):
     local_time = models.DateTimeField()
     time = models.DateTimeField()
     song = models.ForeignKey(Song)
     station = models.ForeignKey(Station)
-
