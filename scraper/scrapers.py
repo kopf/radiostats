@@ -52,6 +52,13 @@ class GenericLastFMScraper(object):
         self.tracks = []
         self.log = logbook.Logger()
 
+    def _get_tracks(self, url, page):
+        try:
+            requests.get(url.format(page=page)).json()['recenttracks']['track']
+        except LookupError:
+            self.log.error('Error getting tracks from Last.fm for %s, retrying...' % self.username)
+            return self._get_tracks(page)
+
     def scrape(self):
         url = self.base_url.format(
             user=self.username, api_key=settings.LASTFM_API_KEY) + '&page={page}'
@@ -63,7 +70,7 @@ class GenericLastFMScraper(object):
         # break.
         first_track = {}
         for page in range(1, 99999):
-            tracks = requests.get(url.format(page=page)).json()['recenttracks']['track']
+            tracks = self._get_tracks(url, page)
             self.log.info('Scraping Last.fm username %s (page %s)' % (self.username, page))
             if tracks[0] == first_track:
                 break
