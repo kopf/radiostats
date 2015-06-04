@@ -5,7 +5,6 @@ from dateutil import parser as dateutil_parser
 from django.conf import settings
 import logbook
 import requests
-import pytz
 
 from scraper.lib import http_get
 
