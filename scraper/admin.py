@@ -10,6 +10,7 @@ class StationAdmin(admin.ModelAdmin):
 
 class SongAdmin(admin.ModelAdmin):
     list_display = ('artist', 'title', 'normalized', 'last_scraped', 'play_count')
+    exclude = ('normalized',)
 
     def queryset(self, request):
         return Song.objects.annotate(play_ct=models.Count('play'))
@@ -26,6 +27,7 @@ class NormalizedSongAdmin(admin.ModelAdmin):
 
 class PlayAdmin(admin.ModelAdmin):
     list_display = ('local_time', 'time', 'song', 'station')
+    exclude = ('song', )
 
 
 admin.site.register(Station, StationAdmin)
