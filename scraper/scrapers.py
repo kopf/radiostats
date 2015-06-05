@@ -1,3 +1,4 @@
+import calendar
 from datetime import datetime
 
 from BeautifulSoup import BeautifulSoup
@@ -5,7 +6,6 @@ from dateutil import parser as dateutil_parser
 from django.conf import settings
 import logbook
 import requests
-import pytz
 
 from scraper.lib import http_get
 
@@ -43,14 +43,16 @@ class GenericScraper(object):
 
 
 class GenericLastFMScraper(object):
-    terminate_early = True
+    terminate_early = False
     base_url = ('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks'
-                '&user={user}&api_key={api_key}&format=json&limit=200')
+                '&user={user}&api_key={api_key}&from={start}&to={end}&format=json&limit=200')
     utc_datetimes = True
 
-    def __init__(self, *args):
+    def __init__(self, date):
         self.tracks = []
         self.log = logbook.Logger()
+        self.start = datetime.combine(date, datetime.min.time())
+        self.end = datetime.combine(date, datetime.max.time())
 
     def _get_tracks(self, url, page):
         try:
@@ -61,7 +63,9 @@ class GenericLastFMScraper(object):
 
     def scrape(self):
         url = self.base_url.format(
-            user=self.username, api_key=settings.LASTFM_API_KEY) + '&page={page}'
+            user=self.username, api_key=settings.LASTFM_API_KEY,
+            start=calendar.timegm(self.start.timetuple()),
+            end=calendar.timegm(self.start.timetuple())) + '&page={page}'
 
         # Last.fm will respond with the first tracks played by an account
         # when we request pages that are out of bounds.
