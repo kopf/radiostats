@@ -65,7 +65,7 @@ class GenericLastFMScraper(object):
         url = self.base_url.format(
             user=self.username, api_key=settings.LASTFM_API_KEY,
             start=calendar.timegm(self.start.timetuple()),
-            end=calendar.timegm(self.start.timetuple())) + '&page={page}'
+            end=calendar.timegm(self.end.timetuple())) + '&page={page}'
 
         # Last.fm will respond with the first tracks played by an account
         # when we request pages that are out of bounds.
