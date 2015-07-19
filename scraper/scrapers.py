@@ -138,33 +138,23 @@ class SWR1Scraper(GenericScraper):
 
 
 class SWR3Scraper(GenericScraper):
-    base_url = ('http://www.swr3.de/musik/playlisten/Musikrecherche-Playlist-Was-lief'
-                '-wann-auf-SWR3/-/id=47424/cf=42/did=65794/93avs/index.html'
+    base_url = ('http://www.swr3.de/musik/playlisten/-/id=47424/cf=42/did=65794/93avs/index.html'
                 '?hour={hour}&date={date}')
 
     @property
     def tracklist_urls(self):
-        return [self.base_url.format(hour=i, date=self.date.strftime('%Y%m%d')) for i in range(24)]
+        return [self.base_url.format(hour=i, date=self.date.strftime('%Y-%m-%d')) for i in range(24)]
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        table = self.soup.find('table', {'class': 'richtext'})
-        if not table:
-            return False
-        for row in table.findAll('tr'):
-            elements = row.findAll('td')
-            if not elements:
-                continue
-            try:
-                artist = elements[0].text
-                title = elements[1].text
-                self.tracks.append(
-                    (artist, title, self.time_to_datetime(elements[2].text, ':')))
-            except ValueError:
-                self.log.error(
-                    'Error occurred on {0} - skipping...'.format(elements))
+        for track in self.soup.find_all('li', {'class': 'item'}):
+            title = track.find('h4', {'class': 'detail-heading'}).text
+            artist = track.find('h5', {'itemprop': 'name'}).text
+            dt = datetime.strptime(
+                track.find('time', {'class': 'timestamp'})['datetime'], '%Y-%m-%dT%H:%M')
+            self.tracks.append((artist, title, dt))
         return True
 
 
