@@ -149,7 +149,7 @@ class SWR3Scraper(GenericScraper):
         """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        for track in self.soup.find_all('li', {'class': 'item'}):
+        for track in self.soup.findAll('li', {'class': 'item'}):
             title = track.find('h4', {'class': 'detail-heading'}).text
             artist = track.find('h5', {'itemprop': 'name'}).text
             dt = datetime.strptime(
