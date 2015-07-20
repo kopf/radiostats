@@ -150,8 +150,11 @@ class SWR3Scraper(GenericScraper):
         (artist, title, time played) tuples
         """
         for track in self.soup.findAll('li', {'class': 'item'}):
-            title = track.find('h4', {'class': 'detail-heading'}).text
-            artist = track.find('h5', {'itemprop': 'name'}).text
+            try:
+                title = track.find('h4', {'class': 'detail-heading'}).text
+                artist = track.find('h5', {'itemprop': 'name'}).text
+            except AttributeError:
+                continue
             dt = datetime.strptime(
                 track.find('time', {'class': 'timestamp'})['datetime'], '%Y-%m-%dT%H:%M')
             self.tracks.append((artist, title, dt))
