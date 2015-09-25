@@ -7,6 +7,7 @@ from optparse import make_option
 import pytz
 
 import logbook
+from django.core.exceptions import MultipleObjectsReturned
 from django.core.management.base import BaseCommand
 import subprocess
 
@@ -77,8 +78,12 @@ class GenericRunner(object):
                 title = self.htmlparser.unescape(track[1])[:256].strip()
                 if not (artist and title):
                     continue
-                song, _ = Song.objects.get_or_create(
-                    artist=artist, title=title)
+                try:
+                    song, _ = Song.objects.get_or_create(
+                        artist=artist, title=title)
+                except MultipleObjectsReturned:
+                    log.error('Multiple songs exist for artist "%s" with song "%s"!' % (artist, title))
+                    raise
                 if scraper.utc_datetimes:
                     utc_tz = pytz.timezone('UTC')
                     utc_dt = utc_tz.localize(track[2])
