@@ -58,7 +58,7 @@ class Command(BaseCommand):
         if not resp:
             return None
         if isinstance(resp, dict):
-            if 'error' in resp or ('track' in resp and not resp['track']['mbid']):
+            if 'error' in resp or ('track' in resp and not resp['track'].get('mbid')):
                 # Found an incomplete listing, better to use track.search
                 return None
             else:
