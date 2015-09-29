@@ -84,7 +84,7 @@ class Command(BaseCommand):
             if (resp.get('results', {}).get('trackmatches')
                     and not isinstance(resp['results']['trackmatches'], basestring)):
                 result = resp['results']['trackmatches']['track']
-                if isinstance(result, list):
+                if isinstance(result, list) and result:
                     result = result[0]
             else:
                 # Track not found by last.fm
