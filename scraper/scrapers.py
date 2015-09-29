@@ -163,7 +163,7 @@ class SWR3Scraper(GenericScraper):
 
 class KEXPScraper(GenericScraper):
     base_url = 'http://www.kexp.org/playlist/{year}/{month}/{date}/{hour}'
-    cookies = {'newhome2014_splash': '1'}
+    cookies = {'newhome2014_splash': '1', 'fall2015_splash': '1'}
 
     @property
     def tracklist_urls(self):
