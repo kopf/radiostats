@@ -5,6 +5,7 @@ from simplejson.decoder import JSONDecodeError
 from urllib import quote_plus
 import os
 
+from beets.autotag.match import tag_item
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DataError
 from django.conf import settings
@@ -17,6 +18,14 @@ from scraper.models import Song, NormalizedSong, Tag
 log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler(
     os.path.join(LOG_DIR, 'normalize.log'), bubble=True)
+
+
+class FakeBeetsItem(object):
+    mb_trackid = None
+    length = 0
+    def __init__(self, artist, title):
+        self.artist = artist
+        self.title = title
 
 
 class Command(BaseCommand):
@@ -162,7 +171,17 @@ class Command(BaseCommand):
         """Using last.fm's API, normalise the artist and track title"""
         track_info = self.query_lastfm(track.artist, track.title)
         if not track_info:
-            return
+            # Fall back on beets
+            artist = unicode(track.artist)
+            title = unicode(track.title)
+            res = tag_item(FakeBeetsItem(artist, title),
+                           search_artist=artist, search_title=title)
+            if res[0][0].distance.distance < 0.35:
+                # 75% confidence
+                track_info = {'artist': res[0][0].info.artist,
+                              'title': res[0][0].info.title,
+                              'mbid': res[0][0].info.track_id,
+                              'tags': []}
         try:
             normalized = NormalizedSong.objects.get(mbid=track_info['mbid'])
         except ObjectDoesNotExist:
