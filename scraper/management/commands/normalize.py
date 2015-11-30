@@ -176,7 +176,7 @@ class Command(BaseCommand):
             title = unicode(track.title)
             res = tag_item(FakeBeetsItem(artist, title),
                            search_artist=artist, search_title=title)
-            if res[0][0].distance.distance < 0.35:
+            if res and res[0] and res[0][0].distance.distance < 0.35:
                 # 75% confidence
                 track_info = {'artist': res[0][0].info.artist,
                               'title': res[0][0].info.title,
