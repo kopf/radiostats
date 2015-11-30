@@ -182,6 +182,8 @@ class Command(BaseCommand):
                               'title': res[0][0].info.title,
                               'mbid': res[0][0].info.track_id,
                               'tags': []}
+            else:
+                return
         try:
             normalized = NormalizedSong.objects.get(mbid=track_info['mbid'])
         except ObjectDoesNotExist:
