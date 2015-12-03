@@ -177,8 +177,8 @@ class Command(BaseCommand):
             # 75% confidence
             track_info = {'artist': res[0][0].info.artist,
                           'title': res[0][0].info.title,
-                          'mbid': res[0][0].info.track_id,
-                          'tags': []}
+                          'mbid': res[0][0].info.track_id}
+            track_info['tags'] = self.get_tags(track_info['mbid'])
         else:
             track_info = self.query_lastfm(track.artist, track.title)
         if not track_info:
