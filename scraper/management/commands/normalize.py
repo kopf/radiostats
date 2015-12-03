@@ -168,22 +168,21 @@ class Command(BaseCommand):
                 'tags': tags}
 
     def normalize(self, track):
-        """Using last.fm's API, normalise the artist and track title"""
-        track_info = self.query_lastfm(track.artist, track.title)
+        """Using beets and last.fm's API, normalise the artist and track title"""
+        artist = unicode(track.artist)
+        title = unicode(track.title)
+        res = tag_item(FakeBeetsItem(artist, title),
+                       search_artist=artist, search_title=title)
+        if res and res[0] and res[0][0].distance.distance < 0.35:
+            # 75% confidence
+            track_info = {'artist': res[0][0].info.artist,
+                          'title': res[0][0].info.title,
+                          'mbid': res[0][0].info.track_id,
+                          'tags': []}
+        else:
+            track_info = self.query_lastfm(track.artist, track.title)
         if not track_info:
-            # Fall back on beets
-            artist = unicode(track.artist)
-            title = unicode(track.title)
-            res = tag_item(FakeBeetsItem(artist, title),
-                           search_artist=artist, search_title=title)
-            if res and res[0] and res[0][0].distance.distance < 0.35:
-                # 75% confidence
-                track_info = {'artist': res[0][0].info.artist,
-                              'title': res[0][0].info.title,
-                              'mbid': res[0][0].info.track_id,
-                              'tags': []}
-            else:
-                return
+            return
         try:
             normalized = NormalizedSong.objects.get(mbid=track_info['mbid'])
         except ObjectDoesNotExist:
