@@ -253,7 +253,7 @@ class Antenne1Scraper(GenericScraper):
 
     @property
     def tracklist_urls(self):
-        return [self.base_url.format(hour=hour, date=self.date.strftime('%Y-%m-%d')) for hour in range(24)]
+        return [self.base_url.format(hour=hour, date=self.date.strftime('%d.%m.%Y')) for hour in range(24)]
 
     def scrape(self):
         for url in self.tracklist_urls:
