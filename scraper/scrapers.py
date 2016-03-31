@@ -245,3 +245,41 @@ class FluxFMWorldwideScraper(FluxFMScraper):
 
 class ByteFMScraper(GenericLastFMScraper):
     username = 'ByteFM'
+
+
+class Antenne1Scraper(GenericScraper):
+    base_url = ('http://www.antenne1.de/musik/on-air/playlist-was-lief-gerade/'
+                'ajax-skript.html?playstunde={hour}&playdatum={date}')
+
+    @property
+    def tracklist_urls(self):
+        return [self.base_url.format(hour=hour, date=self.date.strftime('%Y-%m-%d')) for hour in range(24)]
+
+    def scrape(self):
+        for url in self.tracklist_urls:
+            resp = requests.get(url)
+            # Response has characters escaped with backslashes. Need to remove
+            # these before creating soup object just when they're inside tags.
+            # Would be far more elegant with a regex but I'm too tired :/
+            html = ''
+            remove_backslash = False
+            for char in resp.text:
+                if char == '<':
+                    remove_backslash = True
+                elif char == '>':
+                    remove_backslash = False
+                elif char == '\\' and remove_backslash:
+                    continue
+                html += char
+            self.soup = BeautifulSoup(html)
+            self.extract_tracks()
+
+    def extract_tracks(self):
+        for track in self.soup.find('div', {'class': 'trackdata'}):
+            dt = self.time_to_datetime(
+                track.find('p', {'class': 'time'}).text.replace('Uhr', '').strip(),
+                ':')
+            artist = track.find('p', {'class': 'artist'}).text
+            title = track.find('p', {'class': 'title'}).text
+            track = (artist, title, dt)
+            self.tracks.append(track)
