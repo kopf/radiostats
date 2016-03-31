@@ -261,7 +261,7 @@ class Antenne1Scraper(GenericScraper):
             # Response has characters escaped with backslashes. Need to remove
             # these before creating soup object just when they're inside tags.
             # Would be far more elegant with a regex but I'm too tired :/
-            html = ''
+            html = u''
             remove_backslash = False
             for char in resp.text:
                 if char == '<':
@@ -275,7 +275,7 @@ class Antenne1Scraper(GenericScraper):
             self.extract_tracks()
 
     def extract_tracks(self):
-        for track in self.soup.find('div', {'class': 'trackdata'}):
+        for track in self.soup.findAll('div', {'class': 'trackdata'}):
             dt = self.time_to_datetime(
                 track.find('p', {'class': 'time'}).text.replace('Uhr', '').strip(),
                 ':')
