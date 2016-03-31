@@ -89,5 +89,18 @@
     },
     "model": "scraper.station",
     "pk": 7
+},
+{
+    "fields": {
+        "name": "Antenne1",
+        "class_name": "Antenne1Scraper",
+        "country": "DE",
+        "enabled": true,
+        "last_scraped": null,
+        "timezone": "Europe/Berlin",
+        "start_date": "2016-01-01"
+    },
+    "model": "scraper.station",
+    "pk": 8
 }
 ]
