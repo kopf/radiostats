@@ -275,7 +275,10 @@ class Antenne1Scraper(GenericScraper):
             self.extract_tracks()
 
     def extract_tracks(self):
-        for track in self.soup.findAll('div', {'class': 'trackdata'}):
+        track_divs = self.soup.findAll('div', {'class': 'trackdata'})
+        if not track_divs:
+            return False
+        for track in track_divs:
             dt = self.time_to_datetime(
                 track.find('p', {'class': 'time'}).text.replace('Uhr', '').strip(),
                 ':')
@@ -283,3 +286,4 @@ class Antenne1Scraper(GenericScraper):
             title = track.find('p', {'class': 'title'}).text
             track = (artist, title, dt)
             self.tracks.append(track)
+        return True
