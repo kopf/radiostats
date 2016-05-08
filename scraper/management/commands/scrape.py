@@ -40,7 +40,7 @@ class Command(BaseCommand):
             stations = Station.objects.filter(enabled=True)
             processes = []
             for station in stations:
-                processes.append(subprocess.Popen(['python', 'manage.py', 'scrape', '-s', station.name]))
+                processes.append(subprocess.Popen(['python', 'manage.py', 'scrape', '-s', '"{}"'.format(station.name)]))
             [p.wait() for p in processes]
 
 
