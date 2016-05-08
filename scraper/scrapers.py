@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime
+import time
 
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
@@ -56,16 +57,18 @@ class GenericLastFMScraper(object):
 
     def _get_tracks(self, url, page):
         try:
-            return requests.get(url.format(page=page)).json()['recenttracks']['track']
+            time.sleep(1)
+            return requests.get(url + '&page=%s' % page).json()['recenttracks']['track']
         except LookupError:
             self.log.error('Error getting tracks from Last.fm for %s, retrying...' % self.username)
+            time.sleep(5)
             return self._get_tracks(url, page)
 
     def scrape(self):
         url = self.base_url.format(
             user=self.username, api_key=settings.LASTFM_API_KEY,
             start=calendar.timegm(self.start.timetuple()),
-            end=calendar.timegm(self.end.timetuple())) + '&page={page}'
+            end=calendar.timegm(self.end.timetuple()))
 
         # Last.fm will respond with the first tracks played by an account
         # when we request pages that are out of bounds.
