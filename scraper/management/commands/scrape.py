@@ -61,9 +61,12 @@ class GenericRunner(object):
             try:
                 scraper.scrape()
             except LookupError:
-                msg = u'No data found for date {0} on {1}.'
-                log.error(msg.format(date.strftime('%Y%m%d'), self.station.name))
-                continue
+                if not scraper.tracks:
+                    msg = u'No data found for date {0} on {1}.'
+                    log.error(msg.format(date.strftime('%Y%m%d'), self.station.name))
+                    continue
+                else:
+                    raise
             except Exception as e:
                 msg = u'Uncaught exception occurred scraping {0} on {1}:\n{2}'
                 msg = msg.format(
