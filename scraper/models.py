@@ -24,8 +24,8 @@ class Station(models.Model):
 
 class NormalizedSong(models.Model):
     mbid = models.CharField(max_length=36)
-    artist = models.CharField(max_length=256)
-    title = models.CharField(max_length=256)
+    artist = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     tags = models.ManyToManyField(Tag, null=True)
 
     class Meta:
@@ -36,8 +36,8 @@ class NormalizedSong(models.Model):
 
 
 class Song(models.Model):
-    artist = models.CharField(max_length=256)
-    title = models.CharField(max_length=256)
+    artist = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
     normalized = models.ForeignKey(NormalizedSong, null=True)
     last_scraped = models.DateTimeField(null=True)
 
