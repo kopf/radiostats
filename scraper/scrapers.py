@@ -77,8 +77,11 @@ class GenericLastFMScraper(object):
         # break.
         first_track = {}
         for page in range(1, 99999):
+            self.log.info('Scraping Last.fm username %s (page %s)' % (
+                self.username, page))
             tracks = self._get_tracks(url, page)
-            self.log.info('Scraping Last.fm username %s (page %s)' % (self.username, page))
+            if not tracks:
+                break
             if tracks[0] == first_track:
                 break
             first_track = tracks[0]
