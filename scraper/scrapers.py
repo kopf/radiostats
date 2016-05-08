@@ -253,6 +253,42 @@ class ByteFMScraper(GenericLastFMScraper):
     username = 'ByteFM'
 
 
+class BBC1XtraScraper(GenericLastFMScraper):
+    username = 'bbc1xtra'
+
+
+class BBC6MusicScraper(GenericLastFMScraper):
+    username = 'bbc6music'
+
+
+class BBCRadio1Scraper(GenericLastFMScraper):
+    username = 'bbcradio1'
+
+
+class BBCRadio2Scraper(GenericLastFMScraper):
+    username = 'bbcradio2'
+
+
+class BBCRadio3Scraper(GenericLastFMScraper):
+    username = 'bbcradio3'
+
+
+class Beats1Scraper(GenericLastFMScraper):
+    username = 'beats1radio'
+
+
+class RadioNovaScraper(GenericLastFMScraper):
+    username = 'RadioNovaFR'
+
+
+class Spin1038Scraper(GenericLastFMScraper):
+    username = 'spin1038'
+
+
+class XFMUKScraper(GenericLastFMScraper):
+    username = 'XFMUK'
+
+
 class Antenne1Scraper(GenericScraper):
     base_url = ('http://www.antenne1.de/musik/on-air/playlist-was-lief-gerade/'
                 'ajax-skript.html?playstunde={hour}&playdatum={date}')
