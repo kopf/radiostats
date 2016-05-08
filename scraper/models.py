@@ -28,6 +28,9 @@ class NormalizedSong(models.Model):
     title = models.CharField(max_length=256)
     tags = models.ManyToManyField(Tag, null=True)
 
+    class Meta:
+        unique_together = (("mbid", "artist", "title"),)
+
     def __unicode__(self):
         return '%s - %s' % (self.artist, self.title)
 
@@ -38,6 +41,9 @@ class Song(models.Model):
     normalized = models.ForeignKey(NormalizedSong, null=True)
     last_scraped = models.DateTimeField(null=True)
 
+    class Meta:
+        unique_together = (("artist", "title"),)
+
     def __unicode__(self):
         return '%s - %s' % (self.artist, self.title)
 
@@ -47,3 +53,6 @@ class Play(models.Model):
     time = models.DateTimeField()
     song = models.ForeignKey(Song)
     station = models.ForeignKey(Station)
+
+    class Meta:
+        unique_together = (("time", "station"),)
