@@ -26,7 +26,7 @@ class NormalizedSong(models.Model):
     mbid = models.CharField(max_length=36)
     artist = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
-    tags = models.ManyToManyField(Tag, null=True)
+    tags = models.ManyToManyField(Tag)
 
     class Meta:
         unique_together = (("mbid", "artist", "title"),)
