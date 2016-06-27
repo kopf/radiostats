@@ -2,7 +2,10 @@ from datetime import datetime, timedelta
 import pytz
 import time
 
+import logbook
 import requests
+
+log = logbook.Logger()
 
 USER_AGENT = ('Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 '
               '(KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36')
@@ -16,8 +19,10 @@ def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
         try:
             retval = requests.get(
                 url, headers={'User-Agent': user_agent}, cookies=cookies)
+            retval.raise_for_status()
         except Exception as e:
             time.sleep(1)
+            log.error(e.message)
             return http_get(url, retries=retries-1)
         else:
             return retval

@@ -7,7 +7,6 @@ from optparse import make_option
 import pytz
 
 import logbook
-from django.core.exceptions import MultipleObjectsReturned
 from django.core.management.base import BaseCommand
 from django.db import transaction
 import subprocess
