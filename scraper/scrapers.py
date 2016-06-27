@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime
+import time
 
 from BeautifulSoup import BeautifulSoup
 from dateutil import parser as dateutil_parser
@@ -56,16 +57,18 @@ class GenericLastFMScraper(object):
 
     def _get_tracks(self, url, page):
         try:
-            return requests.get(url.format(page=page)).json()['recenttracks']['track']
+            time.sleep(1)
+            return requests.get(url + '&page=%s' % page).json()['recenttracks']['track']
         except LookupError:
             self.log.error('Error getting tracks from Last.fm for %s, retrying...' % self.username)
+            time.sleep(5)
             return self._get_tracks(url, page)
 
     def scrape(self):
         url = self.base_url.format(
             user=self.username, api_key=settings.LASTFM_API_KEY,
             start=calendar.timegm(self.start.timetuple()),
-            end=calendar.timegm(self.end.timetuple())) + '&page={page}'
+            end=calendar.timegm(self.end.timetuple()))
 
         # Last.fm will respond with the first tracks played by an account
         # when we request pages that are out of bounds.
@@ -74,8 +77,11 @@ class GenericLastFMScraper(object):
         # break.
         first_track = {}
         for page in range(1, 99999):
+            self.log.info('Scraping Last.fm username %s (page %s)' % (
+                self.username, page))
             tracks = self._get_tracks(url, page)
-            self.log.info('Scraping Last.fm username %s (page %s)' % (self.username, page))
+            if not tracks:
+                break
             if tracks[0] == first_track:
                 break
             first_track = tracks[0]
@@ -245,6 +251,42 @@ class FluxFMWorldwideScraper(FluxFMScraper):
 
 class ByteFMScraper(GenericLastFMScraper):
     username = 'ByteFM'
+
+
+class BBC1XtraScraper(GenericLastFMScraper):
+    username = 'bbc1xtra'
+
+
+class BBC6MusicScraper(GenericLastFMScraper):
+    username = 'bbc6music'
+
+
+class BBCRadio1Scraper(GenericLastFMScraper):
+    username = 'bbcradio1'
+
+
+class BBCRadio2Scraper(GenericLastFMScraper):
+    username = 'bbcradio2'
+
+
+class BBCRadio3Scraper(GenericLastFMScraper):
+    username = 'bbcradio3'
+
+
+class Beats1Scraper(GenericLastFMScraper):
+    username = 'beats1radio'
+
+
+class RadioNovaScraper(GenericLastFMScraper):
+    username = 'RadioNovaFR'
+
+
+class Spin1038Scraper(GenericLastFMScraper):
+    username = 'spin1038'
+
+
+class XFMUKScraper(GenericLastFMScraper):
+    username = 'XFMUK'
 
 
 class Antenne1Scraper(GenericScraper):
