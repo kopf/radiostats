@@ -346,8 +346,8 @@ class SunshineLiveScraper(GenericScraper):
             resp = http_get(url)
             soup = BeautifulSoup(resp.text)
             for date_record in soup.findAll('div', {'class': 'date'}):
-                # next day reached, but list is not necessarily ordered - see 30.07.2016 for example
                 if not date_record.text == date_string:
+                    # next day reached, but list is not necessarily ordered - see 30.07.2016 for example
                     continue
                 collected_dates.append(date_record.text)
                 playinfo = date_record.findParent('article').findChild('div', {'class': 'playinfo'})
