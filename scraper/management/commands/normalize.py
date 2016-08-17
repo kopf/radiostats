@@ -7,7 +7,6 @@ import os
 
 from beets.autotag.match import tag_item
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DataError
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -188,12 +187,14 @@ class Command(BaseCommand):
         except ObjectDoesNotExist:
             tag_objects = []
             for text_tag in track_info['tags']:
-                try:
-                    tag, _ = Tag.objects.get_or_create(name=text_tag)
-                except DataError:
-                    # Tag longer than 32 chars, probs bullshit
-                    log.error(u'Failed creating tag: {0}'.format(text_tag))
+                if len(text_tag) > 32:
+                    log.error(u'Ignoring long tag: {0}'.format(text_tag))
                     continue
+                try:
+                    tag = Tag.objects.get(name=text_tag)
+                except ObjectDoesNotExist:
+                    tag = Tag(name=text_tag)
+                    tag.save()
                 tag_objects.append(tag)
             normalized, _= NormalizedSong.objects.get_or_create(
                 mbid=track_info['mbid'],
