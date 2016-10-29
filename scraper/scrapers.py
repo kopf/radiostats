@@ -329,3 +329,44 @@ class Antenne1Scraper(GenericScraper):
             track = (artist, title, dt)
             self.tracks.append(track)
         return True
+
+
+class SunshineLiveScraper(GenericScraper):
+    base_url = ('http://www.sunshine-live.de/playlist?filterTime={date}%20{time}'
+                '&filterStream=studio&format=html'
+                '&zcmlimitstart={start_from}&ax=ok')
+    page_size = 25
+
+    def scrape(self):
+        page = 0
+        date_string = self.date.strftime('%d.%m.%Y')
+        while True:
+            collected_dates = []
+            url = self.base_url.format(date=date_string, time='00:00', start_from=page * self.page_size)
+            resp = http_get(url)
+            soup = BeautifulSoup(resp.text)
+            for date_record in soup.findAll('div', {'class': 'date'}):
+                if not date_record.text == date_string:
+                    # next day reached, but list is not necessarily ordered - see 30.07.2016 for example
+                    continue
+                collected_dates.append(date_record.text)
+                playinfo = date_record.findParent('article').findChild('div', {'class': 'playinfo'})
+                title = playinfo.find('h4', {'class': 'title'}).text.replace('Titel:', '')
+                artist = playinfo.find('h5', {'class': 'artist'}).text.replace('Artist:', '')
+                time = date_record.findNextSibling('div', {'class': 'time'}).text.replace(' UHR', '')
+                date_time = datetime.strptime('{} {}'.format(date_record.text, time), '%d.%m.%Y %H:%M')
+
+                # filter dummy entries from lazy moderators/technical studio issues
+                if artist == 'sunshine live' and title == 'electronic music radio':
+                    continue
+                else:
+                    self.tracks.append((artist, title, date_time))
+
+            if not collected_dates:
+                self.log.info('SSLIVE: No more tracks for {} on page {}'.format(date_string, page))
+                break
+            page += 1
+        if not self.tracks:
+            self.log.error('SSLIVE: No tracks found for {}'.format(date_string))
+        else:
+            self.log.info('SSLIVE: Collected {} tracks for {}'.format(len(self.tracks), date_string))
