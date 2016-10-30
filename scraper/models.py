@@ -53,6 +53,7 @@ class Play(models.Model):
     time = models.DateTimeField()
     song = models.ForeignKey(Song)
     station = models.ForeignKey(Station)
+    synced = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (("time", "station"),)
