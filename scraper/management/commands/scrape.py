@@ -31,22 +31,27 @@ class Command(BaseCommand):
         make_option(
             "-d",
             "--dry_run",
+            action='store_true',
             dest="dry_run",
-            help="perform a dry-run for testing",
-            action="store_true"
+            help="perform a dry-run for testing"
         ),
     )
 
     def handle(self, *args, **options):
+        dry_run = options.get('dry_run', False)
         if options['station_name']:
             station = Station.objects.filter(name=options['station_name'])[0]
-            runner = GenericRunner(station, dry_run=options.get('dry_run', False))
+            runner = GenericRunner(station, dry_run=dry_run)
             runner.run()
         else:
             stations = Station.objects.filter(enabled=True)
             processes = []
             for station in stations:
-                processes.append(subprocess.Popen(['python', 'manage.py', 'scrape', '-s', station.name]))
+                cmd = ['python', 'manage.py', 'scrape', '-s', station.name]
+                #hackity hack:
+                if dry_run:
+                    cmd.append('-d')
+                processes.append(subprocess.Popen(cmd))
             [p.wait() for p in processes]
 
 
