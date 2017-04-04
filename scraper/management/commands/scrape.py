@@ -28,12 +28,19 @@ class Command(BaseCommand):
             dest = "station_name",
             help = "specify name of station to scrape"
         ),
+        make_option(
+            "-d",
+            "--dry_run",
+            dest="dry_run",
+            help="perform a dry-run for testing",
+            action="store_true"
+        ),
     )
 
     def handle(self, *args, **options):
         if options['station_name']:
             station = Station.objects.filter(name=options['station_name'])[0]
-            runner = GenericRunner(station)
+            runner = GenericRunner(station, dry_run=options.get('dry_run', False))
             runner.run()
         else:
             stations = Station.objects.filter(enabled=True)
@@ -44,9 +51,10 @@ class Command(BaseCommand):
 
 
 class GenericRunner(object):
-    def __init__(self, station):
+    def __init__(self, station, dry_run=False):
         self.station = station
         self.htmlparser = HTMLParser.HTMLParser()
+        self.dry_run = dry_run
 
     def run(self):
         log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'), bubble=True)
@@ -73,6 +81,10 @@ class GenericRunner(object):
                     traceback.format_exc())
                 log.error(msg)
                 continue
+            if self.dry_run:
+                print list(set(scraper.tracks))
+                continue
+
             added_already = 0
             # Add all unique tracks: we need to make a set as sometimes
             # tracks are duplicated on the website by accident
@@ -108,8 +120,9 @@ class GenericRunner(object):
                 break
         log.info(u'End reached for {0} at {1}. Stopping...'.format(
                  self.station.name, last_date))
-        self.station.last_scraped = datetime.utcnow()
-        self.station.save()
+        if not self.dry_run:
+            self.station.last_scraped = datetime.utcnow()
+            self.station.save()
         return
 
     @property
