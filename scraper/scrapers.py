@@ -1,5 +1,6 @@
 import calendar
 from datetime import datetime
+import json
 import time
 
 from BeautifulSoup import BeautifulSoup
@@ -168,42 +169,39 @@ class SWR3Scraper(GenericScraper):
 
 
 class KEXPScraper(GenericScraper):
-    base_url = 'http://www.kexp.org/playlist/{year}/{month}/{date}/{hour}'
-    cookies = {'newhome2014_splash': '1', 'fall2015_splash': '1'}
+    base_url = '''https://legacy-api.kexp.org/play/?start_time={year}-{month}-{date}T{hour}:00:00Z&end_time={year}-{month}-{date}T{hour}:59:59Z&format=json'''
 
     @property
     def tracklist_urls(self):
         retval = []
-        for cycle in ['am', 'pm']:
-            for hour in [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
-                retval.append(
-                    self.base_url.format(
-                        year=self.date.year, month=self.date.month,
-                        date=self.date.day, hour='{0}{1}'.format(hour, cycle)
-                    )
+        for hour in range(24):
+            retval.append(
+                self.base_url.format(
+                    year=self.date.year, month='%02d' % self.date.month,
+                    date='%02d' % self.date.day, hour='%02d' % hour
                 )
+            )
         return retval
+
+    def scrape(self):
+        for url in self.tracklist_urls:
+            resp = http_get(url, cookies=self.cookies)
+            self.json_resp = json.loads(resp.text)
+            result = self.extract_tracks()
+            if not result:
+                self.log.warn('No tracks found in url {0}'.format(url))
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        rows = self.soup.findAll('div', {'class': 'Table'})
-        if not rows:
-            return False
-        for row in rows:
-            try:
-                artist = row.find('div', {'class': 'ArtistName'}).text
-                title = row.find('div', {'class': 'TrackName'}).text
-                time = row.find('div', {'class': 'AirDate'}).span.text
-                time = dateutil_parser.parse(time)
-                dt = datetime(self.date.year, self.date.month,self.date.day,
-                              time.hour, time.minute, 0)
-                track = (artist, title, dt)
-                self.tracks.append(track)
-            except AttributeError:
-                # "Air break"
-                pass
+        for entry in self.json_resp['results']:
+            if entry['track']:
+                dt = dateutil_parser.parse(entry['airdate'])
+                # entry['airdate'] is formatted as a UTC datetime, isn't really one though.
+                # therefore, get rid of this to reduce confusion:
+                dt.replace(tzinfo=None)
+                self.tracks.append((entry['artist']['name'], entry['track']['name'], dt))
         return True
 
 
