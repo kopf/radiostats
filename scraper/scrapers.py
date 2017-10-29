@@ -167,44 +167,33 @@ class SWR3Scraper(GenericScraper):
         return True
 
 
-class KEXPScraper(GenericScraper):
-    base_url = 'http://www.kexp.org/playlist/{year}/{month}/{date}/{hour}'
-    cookies = {'newhome2014_splash': '1', 'fall2015_splash': '1'}
+class KEXPScraper(object):
+    cookies = {}
+    terminate_early = False
+    utc_datetimes = False # The responses make it look like UTC time, but it's actually local
 
-    @property
-    def tracklist_urls(self):
-        retval = []
-        for cycle in ['am', 'pm']:
-            for hour in [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
-                retval.append(
-                    self.base_url.format(
-                        year=self.date.year, month=self.date.month,
-                        date=self.date.day, hour='{0}{1}'.format(hour, cycle)
-                    )
-                )
-        return retval
+    def __init__(self, date):
+        self.date = date
+        self.url = 'https://legacy-api.kexp.org/play/?begin_time={date}T00-00-00Z&end_time={date}T23-59-59Z&limit=10000'.format(
+            date=self.date.strftime('%Y-%m-%d')
+        )
+        self.tracks = []
+        self.log = logbook.Logger()
 
-    def extract_tracks(self):
-        """Parse HTML of a tracklist page and return a list of
-        (artist, title, time played) tuples
-        """
-        rows = self.soup.findAll('div', {'class': 'Table'})
-        if not rows:
-            return False
-        for row in rows:
-            try:
-                artist = row.find('div', {'class': 'ArtistName'}).text
-                title = row.find('div', {'class': 'TrackName'}).text
-                time = row.find('div', {'class': 'AirDate'}).span.text
-                time = dateutil_parser.parse(time)
-                dt = datetime(self.date.year, self.date.month,self.date.day,
-                              time.hour, time.minute, 0)
-                track = (artist, title, dt)
-                self.tracks.append(track)
-            except AttributeError:
-                # "Air break"
-                pass
-        return True
+    def scrape(self):
+        r = requests.get(self.url)
+        data = r.json()
+        extracted = []
+
+        for result in data.get('results', []):
+            if result['playtype']['name'] == 'Media play':
+                artist = result['artist']['name']
+                title = result['track']['name']
+                dt = datetime.fromtimestamp(result['epoch_airdate']/1000)
+                extracted.append((artist, title, dt))
+        if not extracted:
+            self.log.warn('No tracks found in url {0}'.format(self.url))
+        self.tracks.extend(extracted)
 
 
 class FluxFMScraper(GenericScraper):
