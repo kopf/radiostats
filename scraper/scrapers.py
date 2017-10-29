@@ -186,7 +186,8 @@ class KEXPScraper(object):
         extracted = []
 
         for result in data.get('results', []):
-            if result['playtype']['name'] == 'Media play':
+            if (result['playtype']['name'] == 'Media play' and
+                    result['playtype']['track'] and result['playtype']['artist']):
                 artist = result['artist']['name']
                 title = result['track']['name']
                 dt = datetime.fromtimestamp(result['epoch_airdate']/1000)
