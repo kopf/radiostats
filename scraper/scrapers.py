@@ -174,7 +174,7 @@ class KEXPScraper(object):
 
     def __init__(self, date):
         self.date = date
-        self.url = 'https://legacy-api.kexp.org/play/?end_time={date}T23-59-59Z&limit=1000'.format(
+        self.url = 'https://legacy-api.kexp.org/play/?end_time={date}T23:59:59Z&limit=1000'.format(
             date=self.date.strftime('%Y-%m-%d')
         )
         self.tracks = []
