@@ -53,6 +53,37 @@ class Play(models.Model):
     time = models.DateTimeField()
     song = models.ForeignKey(Song)
     station = models.ForeignKey(Station)
+    synced = models.BooleanField(default=False)
+
+    def as_document(self):
+        doc = {
+            'local_time': self.local_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'utc_time': self.time.strftime('%Y-%m-%d %H:%M:%S'),
+            'station': {
+                'name': self.station.name,
+                'country': str(self.station.country)
+            }
+        }
+        if self.song.normalized:
+            song = self.song.normalized
+            normalized = True
+        else:
+            song = self.song
+            normalized = False
+        doc['song'] = {
+            'title': song.title,
+            'artist': song.artist,
+            'normalized': normalized,
+            'tags': [tag.name for tag in song.tags.all()] if normalized else []
+        }
+        return doc
+
+    def as_elasticsearch_insert(self):
+        return {
+            '_index': 'radiostats',
+            '_type': 'play',
+            '_source': self.as_document()
+        }
 
     class Meta:
         unique_together = (("time", "station"),)
