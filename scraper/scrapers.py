@@ -291,29 +291,17 @@ class Antenne1Scraper(GenericScraper):
     def scrape(self):
         for url in self.tracklist_urls:
             resp = requests.get(url)
-            # Response has characters escaped with backslashes. Need to remove
-            # these before creating soup object just when they're inside tags.
-            # Would be far more elegant with a regex but I'm too tired :/
-            html = u''
-            remove_backslash = False
-            for char in resp.text:
-                if char == '<':
-                    remove_backslash = True
-                elif char == '>':
-                    remove_backslash = False
-                elif char == '\\' and remove_backslash:
-                    continue
-                html += char
+            html = resp.text.replace('\\/', '/').replace('\\"', '"').strip('"')
             self.soup = BeautifulSoup(html)
             self.extract_tracks()
 
     def extract_tracks(self):
-        track_divs = self.soup.findAll('div', {'class': 'trackdata'})
+        track_divs = self.soup.findAll('div', {'class': 'track'})
         if not track_divs:
-            return False
+            raise LookupError()
         for track in track_divs:
             dt = self.time_to_datetime(
-                track.find('p', {'class': 'time'}).text.replace('Uhr', '').strip(),
+                track.find('p', {'class': 'playtime'}).text.replace('Uhr', '').strip(),
                 ':')
             artist = track.find('p', {'class': 'artist'}).text
             title = track.find('p', {'class': 'title'}).text
