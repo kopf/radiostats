@@ -156,14 +156,14 @@ class SWR3Scraper(GenericScraper):
         """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        for track in self.soup.findAll('li', {'class': 'item'}):
+        for track in self.soup.findAll('li', {'class': 'list-group-item playlist-track'}):
             try:
-                title = track.find('h4', {'class': 'detail-heading'}).text
-                artist = track.find('h5', {'itemprop': 'name'}).text
+                title = track.find('dd', {'class': 'playlist-track-info-title'}).text
+                artist = track.find('dd', {'class': 'playlist-track-info-artist'}).text
             except AttributeError:
                 continue
             dt = datetime.strptime(
-                track.find('time', {'class': 'timestamp'})['datetime'], '%Y-%m-%dT%H:%M')
+                track.find('time')['datetime'], '%Y-%m-%dT%H:%M')
             self.tracks.append((artist, title, dt))
         return True
 
