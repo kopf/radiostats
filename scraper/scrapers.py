@@ -293,12 +293,12 @@ class Antenne1Scraper(GenericScraper):
             resp = requests.get(url)
             html = resp.text.replace('\\/', '/').replace('\\"', '"').strip('"')
             self.soup = BeautifulSoup(html)
-            self.extract_tracks()
+            return self.extract_tracks()
 
     def extract_tracks(self):
         track_divs = self.soup.findAll('div', {'class': 'track'})
         if not track_divs:
-            raise LookupError()
+            return False
         for track in track_divs:
             dt = self.time_to_datetime(
                 track.find('p', {'class': 'playtime'}).text.replace('Uhr', '').strip(),

@@ -121,7 +121,8 @@ class GenericRunner(object):
                     added_already += 1
                     continue
             if (scraper.terminate_early
-                    or (scraper.tracks and added_already == len(scraper.tracks))):
+                    or (scraper.tracks and added_already == len(scraper.tracks))
+                    or not scraper.tracks):
                 break
         log.info(u'End reached for {0} at {1}. Stopping...'.format(
                  self.station.name, last_date))
