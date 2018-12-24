@@ -293,7 +293,9 @@ class Antenne1Scraper(GenericScraper):
             resp = requests.get(url)
             html = resp.text.replace('\\/', '/').replace('\\"', '"').strip('"')
             self.soup = BeautifulSoup(html)
-            return self.extract_tracks()
+            result = self.extract_tracks()
+            if not result:
+                return
 
     def extract_tracks(self):
         track_divs = self.soup.findAll('div', {'class': 'track'})
