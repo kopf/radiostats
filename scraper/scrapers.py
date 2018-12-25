@@ -245,10 +245,11 @@ class ByteFMScraper(GenericScraper):
 
     def scrape(self):
         import pandas
-        df = pandas.read_csv('/home/kopf/mairlistlog.csv')
+        df = pandas.read_csv('/home/kopf/mairlistlog.csv', low_memory=False)
         for idx, row in df.iterrows():
             if (row['curyear'] and row['curmonth'] and row['curday'] and
-                    row['curhour'] and row['curmin']):
+                    row['curhour'] and row['curmin'] and
+                    isinstance(row['artist'], basestring) and isinstance(row['tracktitle'], basestring)):
                 dt = datetime(row['curyear'], row['curmonth'], row['curday'], row['curhour'], row['curmin'], 0)
                 self.tracks.append((row['artist'], row['tracktitle'], dt))
         return True
