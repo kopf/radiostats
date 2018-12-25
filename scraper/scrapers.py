@@ -240,18 +240,8 @@ class FluxFMWorldwideScraper(FluxFMScraper):
     cookies = {'mfmloc': 'world'}
 
 
-class ByteFMScraper(GenericScraper):
-    terminate_early = True
-
-    def scrape(self):
-        import pandas
-        df = pandas.read_csv('/home/kopf/mairlistlog.csv')
-        for idx, row in df.iterrows():
-            if (row['curyear'] and row['curmonth'] and row['curday'] and
-                    row['curhour'] and row['curmin']):
-                dt = datetime(row['curyear'], row['curmonth'], row['curday'], row['curhour'], row['curmin'], 0)
-                self.tracks.append((row['artist'], row['tracktitle'], dt))
-        return True
+class ByteFMScraper(GenericLastFMScraper):
+    username = 'ByteFM'
 
 
 class BBC1XtraScraper(GenericLastFMScraper):
