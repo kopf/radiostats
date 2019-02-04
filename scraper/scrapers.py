@@ -12,15 +12,17 @@ import requests
 from scraper.lib import http_get
 
 
-class GenericScraper(object):
-    cookies = {}
-    terminate_early = False
-    utc_datetimes = False
-
+class ScraperBase(object):
     def __init__(self, date):
         self.date = date
         self.tracks = []
-        self.log = logbook.Logger()
+        self.log = logbook.Logger(type(self).__name__)
+
+
+class GenericScraper(ScraperBase):
+    cookies = {}
+    terminate_early = False
+    utc_datetimes = False
 
     def time_to_datetime(self, text_time, split_char):
         """Transform a text time into a datetime using appropriate date"""
@@ -44,15 +46,14 @@ class GenericScraper(object):
                 self.log.warn('No tracks found in url {0}'.format(url))
 
 
-class GenericLastFMScraper(object):
+class GenericLastFMScraper(ScraperBase):
     terminate_early = False
     base_url = ('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks'
                 '&user={user}&api_key={api_key}&from={start}&to={end}&format=json&limit=200')
     utc_datetimes = True
 
     def __init__(self, date):
-        self.tracks = []
-        self.log = logbook.Logger()
+        super(GenericLastFMScraper, self).__init__(date)
         self.start = datetime.combine(date, datetime.min.time())
         self.end = datetime.combine(date, datetime.max.time())
 
@@ -61,7 +62,7 @@ class GenericLastFMScraper(object):
             time.sleep(1)
             return requests.get(url + '&page=%s' % page).json()['recenttracks']['track']
         except LookupError:
-            self.log.error('Error getting tracks from Last.fm for %s, retrying...' % self.username)
+            self.log.error('Error getting tracks, retrying...')
             time.sleep(5)
             return self._get_tracks(url, page)
 
@@ -78,8 +79,7 @@ class GenericLastFMScraper(object):
         # break.
         first_track = {}
         for page in range(1, 99999):
-            self.log.info('Scraping Last.fm username %s (page %s)' % (
-                self.username, page))
+            self.log.info('Scraping page %s...' % page)
             tracks = self._get_tracks(url, page)
             if not tracks:
                 break
@@ -111,7 +111,7 @@ class SWR1Scraper(GenericScraper):
         """
         main_div = self.soup.find('ul', {'class': 'musicList'})
         if not main_div:
-            self.log.error('No tracks found on SWR1 for date {0}'.format(
+            self.log.error('No tracks found for date {0}'.format(
                 self.date.strftime('%Y-%m-%d %H:00')))
             return
         elements = main_div.findAll('li')
@@ -168,18 +168,16 @@ class SWR3Scraper(GenericScraper):
         return True
 
 
-class KEXPScraper(object):
+class KEXPScraper(ScraperBase):
     cookies = {}
     terminate_early = False
     utc_datetimes = False # The responses make it look like UTC time, but it's actually local
 
     def __init__(self, date):
-        self.date = date
+        super(KEXPScraper, self).__init__(date)
         self.url = 'https://legacy-api.kexp.org/play/?end_time={date}T23:59:59Z&limit=1000'.format(
             date=self.date.strftime('%Y-%m-%d')
         )
-        self.tracks = []
-        self.log = logbook.Logger()
 
     def scrape(self):
         r = requests.get(self.url)
@@ -218,7 +216,7 @@ class FluxFMScraper(GenericScraper):
                 artist = row.find('span', {'class': 'artist'}).text
                 title = row.find('span', {'class': 'song'}).text.strip('- ')
             except AttributeError:
-                self.log.error(u'Failed to extract track from FluxFM: {0}'.format(row))
+                self.log.error(u'Failed to extract track from: {0}'.format(row))
                 continue
             time = self.time_to_datetime(time, ':')
             dt = datetime(self.date.year, self.date.month,self.date.day,
@@ -341,10 +339,10 @@ class SunshineLiveScraper(GenericScraper):
                     self.tracks.append((artist, title, date_time))
 
             if not tracks_found:
-                self.log.info('SSLIVE: No more tracks for {} on page {}'.format(date_string, page))
+                self.log.info('No more tracks for {} on page {}'.format(date_string, page))
                 break
             page += 1
         if not self.tracks:
-            self.log.error('SSLIVE: No tracks found for {}'.format(date_string))
+            self.log.error('No tracks found for {}'.format(date_string))
         else:
-            self.log.info('SSLIVE: Collected {} tracks for {}'.format(len(self.tracks), date_string))
+            self.log.info('Collected {} tracks for {}'.format(len(self.tracks), date_string))
