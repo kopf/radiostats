@@ -53,6 +53,7 @@ class GenericLastFMScraper(ScraperBase):
     utc_datetimes = True
 
     def __init__(self, date):
+        super(GenericLastFMScraper, self).__init__(date)
         self.start = datetime.combine(date, datetime.min.time())
         self.end = datetime.combine(date, datetime.max.time())
 
@@ -173,6 +174,7 @@ class KEXPScraper(ScraperBase):
     utc_datetimes = False # The responses make it look like UTC time, but it's actually local
 
     def __init__(self, date):
+        super(KEXPScraper, self).__init__(date)
         self.url = 'https://legacy-api.kexp.org/play/?end_time={date}T23:59:59Z&limit=1000'.format(
             date=self.date.strftime('%Y-%m-%d')
         )
