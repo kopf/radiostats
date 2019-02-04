@@ -16,7 +16,7 @@ from scraper import scrapers
 from scraper.lib import create_date_range, utc_datetime
 from scraper.models import Station, Song, Play
 
-log = logbook.Logger()
+log = logbook.Logger('runner')
 
 
 class Command(BaseCommand):
