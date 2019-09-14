@@ -3,6 +3,7 @@ from datetime import datetime
 import HTMLParser
 import traceback
 import os
+import sys
 from optparse import make_option
 import pytz
 
@@ -63,6 +64,7 @@ class GenericRunner(object):
 
     def run(self):
         log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'), bubble=True)
+        logbook.StreamHandler(sys.stdout).push_thread()
         log_handler.push_thread()
         last_date = None
         for date in self.date_range:
