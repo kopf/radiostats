@@ -97,51 +97,28 @@ class GenericLastFMScraper(ScraperBase):
 
 
 class SWR1Scraper(GenericScraper):
-    base_url = ('http://www.swr.de/swr1/bw/musik/musikrecherche/-/id=446260'
-                '/8biejp/index.html')
+    base_url = ('https://www.swr.de/swr1/bw/playlist/Die-Musikrecherche-in-der-SWR1-Playlist,musikrecherche-swr1-bw-100.html'
+                '?time={hour:02}%3A00&date={date}')
 
     @property
     def tracklist_urls(self):
-        timelist = self.soup.find('ul', {'class': 'progTimeList pulldownlist'})
-        return [a['href'] for a in timelist.findAll('a')]
+        return [self.base_url.format(hour=i, date=self.date.strftime('%Y-%m-%d')) for i in range(24)]
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        main_div = self.soup.find('ul', {'class': 'musicList'})
-        if not main_div:
+        tracks = self.soup.findAll('div', {'class': 'list-playlist-item'})
+        if not tracks:
             self.log.error('No tracks found for date {0}'.format(
                 self.date.strftime('%Y-%m-%d %H:00')))
-            return
-        elements = main_div.findAll('li')
-        for el in elements:
-            time_played = el.find('div', {'class': 'musicItemTime'}).p.text
-            time_played = self.time_to_datetime(time_played, '.')
-            artist = el.find('div', {'class': 'musicItemText'}).p.text
-            title = el.find('div', {'class': 'musicItemText'}).h3.text
-            # They fuck up on SWR1 occasionally, placing the artist
-            # at the end of the title too:
-            if title.endswith(artist):
-                title = title.split(artist)[0]
+        for el in tracks:
+            time_played = dateutil_parser.parse(el.find('time')['datetime'])
+            container = el.find('dl')
+            title = container.findAll('dd')[0].text
+            artist = container.findAll('dd')[1].text
             self.tracks.append((artist, title, time_played))
-
-    def scrape(self):
-        resp = http_get(self.base_url)
-        soup = BeautifulSoup(resp.text)
-        date_links = []
-        for cell in soup.findAll('span', {'class': 'progDayCell'}):
-            date_links.extend([a['href'] for a in cell.findAll('a')])
-        for url in date_links:
-            if 'date={0}'.format(self.date.strftime('%Y%m%d')) in url:
-                resp = http_get(url)
-                self.soup = BeautifulSoup(resp.text)
-                for tracklist_url in self.tracklist_urls:
-                    resp = http_get(tracklist_url)
-                    self.soup = BeautifulSoup(resp.text)
-                    self.extract_tracks()
-                return
-        raise LookupError
+        return len(tracks) > 0
 
 
 class SWR3Scraper(GenericScraper):
