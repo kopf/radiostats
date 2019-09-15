@@ -4,6 +4,7 @@ import logbook
 from simplejson.decoder import JSONDecodeError
 from urllib import quote_plus
 import os
+import sys
 
 from beets.autotag.match import tag_item
 from django.core.exceptions import ObjectDoesNotExist
@@ -17,6 +18,7 @@ from scraper.models import Song, NormalizedSong, Tag
 log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler(
     os.path.join(LOG_DIR, 'normalize.log'), bubble=True)
+logbook.StreamHandler(sys.stdout).push_thread()
 
 
 class FakeBeetsItem(object):
