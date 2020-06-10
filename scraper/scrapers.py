@@ -83,6 +83,8 @@ class GenericLastFMScraper(ScraperBase):
             tracks = self._get_tracks(url, page)
             if not tracks:
                 break
+            if isinstance(tracks, dict):
+                tracks = [tracks]
             if tracks[0] == first_track:
                 break
             first_track = tracks[0]
