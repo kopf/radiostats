@@ -11,3 +11,4 @@ pytz
 requests
 simplejson==3.8.2
 elasticsearch==5.0.0
+mysqlclient
