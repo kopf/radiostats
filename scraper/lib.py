@@ -18,7 +18,7 @@ def http_post(*args, **kwargs):
     kwargs['method'] = 'post'
     return http_req(*args, **kwargs)
 
-def http_req(url, retries=10, user_agent=USER_AGENT, cookies=None, method='get'):
+def http_req(url, retries=10, user_agent=USER_AGENT, cookies=None, method='get', **kwargs):
     """Wrapper for requests.get for retries"""
     if cookies is None:
         cookies = {}
@@ -26,7 +26,7 @@ def http_req(url, retries=10, user_agent=USER_AGENT, cookies=None, method='get')
     if retries:
         try:
             retval = requests_func(
-                url, headers={'User-Agent': user_agent}, cookies=cookies)
+                url, headers={'User-Agent': user_agent}, cookies=cookies, **kwargs)
             retval.raise_for_status()
         except Exception as e:
             time.sleep(1)
