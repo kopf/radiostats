@@ -10,14 +10,22 @@ log = logbook.Logger()
 USER_AGENT = ('Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 '
               '(KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36')
 
+def http_get(*args, **kwargs):
+    kwargs['method'] = 'get'
+    return http_req(*args, **kwargs)
 
-def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
+def http_post(*args, **kwargs):
+    kwargs['method'] = 'post'
+    return http_req(*args, **kwargs)
+
+def http_req(url, retries=10, user_agent=USER_AGENT, cookies=None, method='get'):
     """Wrapper for requests.get for retries"""
     if cookies is None:
         cookies = {}
+    requests_func = getattr(requests, method)
     if retries:
         try:
-            retval = requests.get(
+            retval = requests_func(
                 url, headers={'User-Agent': user_agent}, cookies=cookies)
             retval.raise_for_status()
         except Exception as e:
@@ -28,7 +36,7 @@ def http_get(url, retries=10, user_agent=USER_AGENT, cookies=None):
             return retval
     else:
         # Try one last time, if it fails, it fails
-        return requests.get(
+        return requests_func(
             url, headers={'User-Agent': user_agent}, cookies=cookies)
 
 

@@ -9,7 +9,7 @@ from django.conf import settings
 import logbook
 import requests
 
-from scraper.lib import http_get
+from scraper.lib import http_get, http_post
 
 
 class ScraperBase(object):
@@ -122,21 +122,25 @@ class SWR1Scraper(GenericScraper):
 
 
 class SWR3Scraper(GenericScraper):
-    base_url = ('http://www.swr3.de/musik/playlisten/-/id=47424/cf=42/did=65794/93avs/index.html'
-                '?hour={hour}&date={date}')
 
-    @property
-    def tracklist_urls(self):
-        return [self.base_url.format(hour=i, date=self.date.strftime('%Y-%m-%d')) for i in range(24)]
+    def scrape(self):
+        """General scrape workflow. Can be overridden if necessary."""
+        for hour in range(24):
+            form_data = {'time':'{0:02d}:00'.format(hour), 'date': self.date.strftime('%Y-%m-%d')}
+            resp = http_post('https://www.swr3.de/playlisten/index.html', data=form_data)
+            self.soup = BeautifulSoup(resp.text)
+            result = self.extract_tracks()
+            if not result:
+                self.log.warn('No tracks found in url {0}'.format(url))
 
     def extract_tracks(self):
         """Parse HTML of a tracklist page and return a list of
         (artist, title, time played) tuples
         """
-        for track in self.soup.findAll('li', {'class': 'list-group-item playlist-track'}):
+        for track in self.soup.findAll('div', {'class': 'list-playlist-item'}):
             try:
-                title = track.find('dd', {'class': 'playlist-track-info-title'}).text
-                artist = track.find('dd', {'class': 'playlist-track-info-artist'}).text
+                title = track.findAll('dd')[0].text
+                artist = track.findAll('dd')[1].text
             except AttributeError:
                 continue
             dt = datetime.strptime(
