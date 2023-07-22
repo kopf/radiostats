@@ -100,8 +100,12 @@ class GenericRunner(object):
                 title = self.htmlparser.unescape(track[1])[:256].strip()
                 if not (artist and title):
                     continue
-                song, _ = Song.objects.get_or_create(
-                    artist=artist, title=title)
+                try:
+                    song, _ = Song.objects.get_or_create(
+                        artist=artist, title=title)
+                except django.db.utils.DataError as e:
+                    log.error("Couldn't add {0} - {1} to db: {1}".format(artist, title, e))
+                    continue
                 if scraper.utc_datetimes:
                     utc_tz = pytz.timezone('UTC')
                     utc_dt = utc_tz.localize(track[2])
