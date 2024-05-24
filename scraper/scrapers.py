@@ -99,8 +99,8 @@ class GenericLastFMScraper(ScraperBase):
 
 
 class SWR1Scraper(GenericScraper):
-    base_url = ('https://www.swr.de/swr1/bw/playlist/Die-Musikrecherche-in-der-SWR1-Playlist,musikrecherche-swr1-bw-100.html'
-                '?time={hour:02}%3A00&date={date}')
+    base_url = ('https://www.swr.de/swr1/bw/playlist/index.html'
+                '?swx_time={hour:02}%3A00&swx_date={date}')
 
     @property
     def tracklist_urls(self):
@@ -117,8 +117,8 @@ class SWR1Scraper(GenericScraper):
         for el in tracks:
             time_played = dateutil_parser.parse(el.find('time')['datetime'])
             container = el.find('dl')
-            title = container.findAll('dd')[0].text
-            artist = container.findAll('dd')[1].text
+            title = container.findAll('dd', {'class': 'playlist-item-song'})[0].text
+            artist = container.findAll('dd', {'class': 'playlist-item-artist'})[0].text
             self.tracks.append((artist, title, time_played))
         return len(tracks) > 0
 
