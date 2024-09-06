@@ -10,6 +10,7 @@ from beets.autotag.match import tag_item
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from radiostats.settings import LOG_DIR
 from scraper.lib import http_get
@@ -41,7 +42,7 @@ class Command(BaseCommand):
         tracks = Song.objects.filter(last_scraped=None)
         for track in tracks:
             self.normalize(track)
-            track.last_scraped = datetime.utcnow()
+            track.last_scraped = timezone.now()
             track.save()
             i += 1
             if i % 10 == 0:
