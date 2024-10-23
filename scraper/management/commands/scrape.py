@@ -36,6 +36,12 @@ class Command(BaseCommand):
             dest="dry_run",
             help="perform a dry-run for testing"
         ),
+        make_option(
+            "--sequential",
+            action='store_true',
+            dest="sequential",
+            help="run sequentially, not in parallel"
+        ),
     )
 
     def handle(self, *args, **options):
@@ -52,8 +58,13 @@ class Command(BaseCommand):
                 #hackity hack:
                 if dry_run:
                     cmd.append('-d')
-                processes.append(subprocess.Popen(cmd))
-            [p.wait() for p in processes]
+                process = subprocess.Popen(cmd)
+                if options.get('sequential'):
+                    process.wait()
+                else:
+                    processes.append(subprocess.Popen(cmd))
+            if not options.get('sequential'):
+                [p.wait() for p in processes]
 
 
 class GenericRunner(object):
