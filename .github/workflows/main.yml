@@ -21,7 +21,7 @@ jobs:
       #    name: database
       #    branch: master
       - name: Download db for it to be stored
-        run: cd radiostats ; wget -k https://157.90.252.43/db.sqlite3 ; du -h db.sqlite3
+        run: cd radiostats ; wget --no-check-certificate https://157.90.252.43/db.sqlite3 ; du -h db.sqlite3
 #      - name: Scrape
 #        run: python manage.py scrape --sequential
 #      - name: Normalize
