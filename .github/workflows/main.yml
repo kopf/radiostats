@@ -12,7 +12,8 @@ jobs:
       image: python:2.7
     steps:
       - name: Setup environment
-        run: cd radiostats ; pip install -r requirements.txt
+        #run: cd radiostats ; pip install -r requirements.txt
+        run: find .
       - name: Download dataset
         id: download-artifact
         uses: dawidd6/action-download-artifact@v8
