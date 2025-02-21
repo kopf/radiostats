@@ -14,16 +14,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup environment
         run: pip install -r requirements.txt
-      - name: Download database
-        id: download-artifact
-        uses: dawidd6/action-download-artifact@v8
-        with:
-          name: database
-          branch: master
-      - name: Scrape
-        run: python manage.py scrape --sequential
-      - name: Normalize
-        run: python manage.py normalize
+      #- name: Download dataset
+      #  id: download-artifact
+      #  uses: dawidd6/action-download-artifact@v8
+      #  with:
+      #    name: database
+      #    branch: master
+      - name: Download db for it to be stored
+        run: cd radiostats ; wget --no-check-certificate https://157.90.252.43/db.sqlite3 ; du -h db.sqlite3
+#      - name: Scrape
+#        run: python manage.py scrape --sequential
+#      - name: Normalize
+#        run: python manage.py normalize
       - name: Archive dataset
         uses: actions/upload-artifact@v4
         with:
