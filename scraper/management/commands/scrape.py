@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 if options.get('sequential'):
                     process.wait()
                 else:
-                    processes.append(subprocess.Popen(cmd))
+                    processes.append(process)
             if not options.get('sequential'):
                 [p.wait() for p in processes]
 
