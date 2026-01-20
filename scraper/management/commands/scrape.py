@@ -53,8 +53,9 @@ class Command(BaseCommand):
         else:
             stations = Station.objects.filter(enabled=True)
             processes = []
+            manage_py = os.path.join(os.path.dirname(__file__), '../../..', 'manage.py')
             for station in stations:
-                cmd = ['python', 'manage.py', 'scrape', '-s', station.name]
+                cmd = ['python', manage_py, 'scrape', '-s', station.name]
                 #hackity hack:
                 if dry_run:
                     cmd.append('-d')
