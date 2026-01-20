@@ -75,6 +75,12 @@ class GenericRunner(object):
         self.dry_run = dry_run
 
     def run(self):
+        # TODO: DON'T JUST IGNORE RUNTIMEWARNINGS ABOUT TIMEZONES
+        # but instead fix this code as part of modernizing it
+        import warnings
+        warnings.filterwarnings("ignore")
+        #
+
         log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'), bubble=True)
         logbook.StreamHandler(sys.stdout).push_thread()
         log_handler.push_thread()
