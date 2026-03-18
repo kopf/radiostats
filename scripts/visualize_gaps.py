@@ -18,8 +18,10 @@ import plotly.graph_objects as go
 def main():
     parser = argparse.ArgumentParser(description="Visualize data holes in radio station scraper database.")
     parser.add_argument("db_path", type=str, help="Path to the SQLite database file.")
+    parser.add_argument("--station", type=str, nargs='+', 
+                        help="Specific station name(s) to include (e.g., --station 'Radio 1' 'Radio 2').")
     parser.add_argument("--gap-threshold", type=float, default=3.0, 
-                        help="Minimum gap in hours to be considered a 'hole' (default: 3.0). Only applies to Gantt.")
+                        help="Minimum gap in hours to be considered a 'hole' (default: 3.0).")
     parser.add_argument("--viz-type", choices=['gantt', 'line', 'heatmap'], default='gantt',
                         help="Type of visualization to generate (default: gantt).")
     parser.add_argument("--all-stations", action="store_true", 
@@ -34,7 +36,14 @@ def main():
         print(f"Error: Database file '{args.db_path}' not found.")
         sys.exit(1)
 
-    station_filter = "1=1" if args.all_stations else "s.enabled = 1"
+    # Determine station filter and SQL parameters to prevent injection
+    query_params = ()
+    if args.station:
+        placeholders = ', '.join(['?'] * len(args.station))
+        station_filter = f"s.name IN ({placeholders})"
+        query_params = tuple(args.station)
+    else:
+        station_filter = "1=1" if args.all_stations else "s.enabled = 1"
 
     print(f"Connecting to {args.db_path} (Read-Only)...")
     conn = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True)
@@ -49,10 +58,39 @@ def main():
     WHERE {station_filter}
     GROUP BY s.name
     """
-    first_play_df = pd.read_sql_query(first_play_query, conn)
+    first_play_df = pd.read_sql_query(first_play_query, conn, params=query_params)
     first_play_df['earliest_time'] = pd.to_datetime(first_play_df['earliest_time'])
-    # Format the time as a clean string for the hover text
     first_play_df['hover_time_str'] = first_play_df['earliest_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+    print(f"Calculating total hours of silence (gaps >= {args.gap_threshold}h) per station...")
+    # New query to calculate the cumulative total of the holes per station
+    gap_summary_query = f"""
+    WITH PlayTimes AS (
+        SELECT 
+            s.name AS station_name,
+            p.time,
+            LEAD(p.time) OVER (PARTITION BY p.station_id ORDER BY p.time) AS next_time
+        FROM scraper_play p
+        JOIN scraper_station s ON p.station_id = s.id
+        WHERE {station_filter}
+    )
+    SELECT 
+        station_name, 
+        SUM((julianday(next_time) - julianday(time)) * 24) AS total_gap_hours
+    FROM PlayTimes
+    WHERE (julianday(next_time) - julianday(time)) * 24 >= ? AND next_time IS NOT NULL
+    GROUP BY station_name
+    """
+    gap_summary_df = pd.read_sql_query(gap_summary_query, conn, params=query_params + (args.gap_threshold,))
+    gap_dict = gap_summary_df.set_index('station_name')['total_gap_hours'].to_dict()
+
+    # Function to append the total number of hours missing to the station name
+    def format_station_label(name):
+        gaps = gap_dict.get(name, 0.0)
+        return f"{name} ({gaps:.1f}h missing)"
+
+    # Apply the new labels to our first play dataframe
+    first_play_df['station_name'] = first_play_df['station_name'].apply(format_station_label)
 
     if args.viz_type == 'gantt':
         print(f"Calculating exact gaps >= {args.gap_threshold} hours...")
@@ -74,7 +112,7 @@ def main():
         FROM PlayTimes
         WHERE gap_hours >= ? AND next_time IS NOT NULL
         """
-        df = pd.read_sql_query(query, conn, params=(args.gap_threshold,))
+        df = pd.read_sql_query(query, conn, params=query_params + (args.gap_threshold,))
         
         if df.empty:
             print(f"No gaps found larger than {args.gap_threshold} hours.")
@@ -82,6 +120,8 @@ def main():
 
         df['start_time'] = pd.to_datetime(df['start_time'])
         df['end_time'] = pd.to_datetime(df['end_time'])
+        # Apply the new station labels
+        df['station_name'] = df['station_name'].apply(format_station_label)
         
         print("Generating Gantt chart...")
         fig = px.timeline(
@@ -117,13 +157,15 @@ def main():
         GROUP BY s.name, play_date
         HAVING play_date IS NOT NULL
         """
-        df = pd.read_sql_query(query, conn)
+        df = pd.read_sql_query(query, conn, params=query_params)
         
         if df.empty:
             print("No data found to plot.")
             sys.exit(0)
 
         df['play_date'] = pd.to_datetime(df['play_date'])
+        # Apply the new station labels
+        df['station_name'] = df['station_name'].apply(format_station_label)
         
         all_dates = pd.date_range(start=df['play_date'].min(), end=df['play_date'].max())
         stations = df['station_name'].unique()
@@ -141,7 +183,7 @@ def main():
                 labels={"play_date": "Date", "play_count": "Songs Scraped", "station_name": "Station"}
             )
             
-            first_play_merged = pd.merge(first_play_df, df, left_on=['station_name', 'earliest_date'], right_on=['station_name', 'play_date'])
+            first_play_merged = pd.merge(first_play_df, df, on=['station_name', 'earliest_date'])
             
             fig.add_trace(go.Scatter(
                 x=first_play_merged['earliest_date'], y=first_play_merged['play_count'],
