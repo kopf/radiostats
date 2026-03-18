@@ -43,6 +43,6 @@ class Command(BaseCommand):
         Play.objects.filter(id__in=to_delete_ids).delete()
         log.info('==============')
         log.info('Report:')
-        for station_name, deleted_count in deleted.iteritems():
+        for station_name, deleted_count in deleted.items():
             log.info('{0}: {1} deleted'.format(station_name, deleted_count))
         log.info('==============')

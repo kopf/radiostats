@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from datetime import datetime
-import HTMLParser
+from html.parser import HTMLParser
+import html
 import traceback
 import os
 import sys
@@ -8,7 +9,7 @@ from optparse import make_option
 import pytz
 
 import logbook
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 import subprocess
 
@@ -71,7 +72,6 @@ class Command(BaseCommand):
 class GenericRunner(object):
     def __init__(self, station, dry_run=False):
         self.station = station
-        self.htmlparser = HTMLParser.HTMLParser()
         self.dry_run = dry_run
 
     def run(self):
@@ -88,41 +88,36 @@ class GenericRunner(object):
         for date in self.date_range:
             last_date = date
             scraper = getattr(scrapers, self.station.class_name)(date)
-            log.info(u'Scraping {0} for date {1}...'.format(
-                self.station.name, date.strftime('%Y-%m-%d')))
+            log.info(f'Scraping {self.station.name} for date {date.strftime("%Y-%m-%d")}...')
             try:
                 scraper.scrape()
             except LookupError:
                 if not scraper.tracks:
-                    msg = u'No data found for date {0} on {1}.'
-                    log.error(msg.format(date.strftime('%Y%m%d'), self.station.name))
+                    msg = f'No data found for date {date.strftime("%Y%m%d")} on {self.station.name}.'
                     continue
                 else:
                     raise
             except Exception as e:
-                msg = u'Uncaught exception occurred scraping {0} on {1}:\n{2}'
-                msg = msg.format(
-                    self.station.name, date.strftime('%Y%m%d'),
-                    traceback.format_exc())
+                msg = f'Uncaught exception occurred scraping {self.station.name} on {date.strftime("%Y%m%d")}:\n{traceback.format_exc()}'
                 log.error(msg)
                 continue
             if self.dry_run:
-                print list(set(scraper.tracks))
+                print(list(set(scraper.tracks)))
                 continue
 
             added_already = 0
             # Add all unique tracks: we need to make a set as sometimes
             # tracks are duplicated on the website by accident
             for track in list(set(scraper.tracks)):
-                artist = self.htmlparser.unescape(track[0])[:256].strip()
-                title = self.htmlparser.unescape(track[1])[:256].strip()
+                artist = html.unescape(track[0])[:256].strip()
+                title = html.unescape(track[1])[:256].strip()
                 if not (artist and title):
                     continue
                 try:
                     song, _ = Song.objects.get_or_create(
                         artist=artist, title=title)
                 except django.db.utils.DataError as e:
-                    log.error("Couldn't add {0} - {1} to db: {1}".format(artist, title, e))
+                    log.error(f"Couldn't add {artist} - {title} to db: {e}")
                     continue
                 if scraper.utc_datetimes:
                     utc_tz = pytz.timezone('UTC')
@@ -148,8 +143,7 @@ class GenericRunner(object):
                     or (scraper.tracks and added_already == len(scraper.tracks))
                     or not scraper.tracks):
                 break
-        log.info(u'End reached for {0} at {1}. Stopping...'.format(
-                 self.station.name, last_date))
+        log.info(f'End reached for {self.station.name} at {last_date}. Stopping...')
         if not self.dry_run:
             self.station.last_scraped = datetime.utcnow()
             self.station.save()

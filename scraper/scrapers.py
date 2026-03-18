@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import time
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from dateutil import parser as dateutil_parser
 from django.conf import settings
 import logbook
