@@ -6,12 +6,11 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from elasticsearch import Elasticsearch, helpers
 
-from radiostats.settings import LOG_DIR
 from scraper.models import Play
 
 log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler(
-    os.path.join(LOG_DIR, 'sync.log'), bubble=True)
+    os.path.join(settings.LOG_DIR, 'sync.log'), bubble=True)
 BULK_SIZE = 5000
 
 

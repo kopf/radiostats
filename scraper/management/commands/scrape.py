@@ -9,11 +9,11 @@ from optparse import make_option
 import pytz
 
 import logbook
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 import subprocess
 
-from radiostats.settings import LOG_DIR
 from scraper import scrapers
 from scraper.lib import create_date_range, utc_datetime
 from scraper.models import Station, Song, Play
@@ -23,27 +23,27 @@ log = logbook.Logger('runner')
 
 class Command(BaseCommand):
     help = 'Scrapes radio stations for new tracks'
-    option_list = BaseCommand.option_list + (
-        make_option(
+
+    def add_arguments(self, parser):
+        parser.add_argument(
             "-s",
             "--station",
-            dest = "station_name",
-            help = "specify name of station to scrape"
-        ),
-        make_option(
+            dest="station_name",
+            help="specify name of station to scrape"
+        )
+        parser.add_argument(
             "-d",
             "--dry_run",
             action='store_true',
             dest="dry_run",
             help="perform a dry-run for testing"
-        ),
-        make_option(
+        )
+        parser.add_argument(
             "--sequential",
             action='store_true',
             dest="sequential",
             help="run sequentially, not in parallel"
-        ),
-    )
+        )
 
     def handle(self, *args, **options):
         dry_run = options.get('dry_run', False)
@@ -81,7 +81,7 @@ class GenericRunner(object):
         warnings.filterwarnings("ignore")
         #
 
-        log_handler = logbook.FileHandler(os.path.join(LOG_DIR, 'scraper.log'), bubble=True)
+        log_handler = logbook.FileHandler(os.path.join(settings.LOG_DIR, 'scraper.log'), bubble=True)
         logbook.StreamHandler(sys.stdout).push_thread()
         log_handler.push_thread()
         last_date = None

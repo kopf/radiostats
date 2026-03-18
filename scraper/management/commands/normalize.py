@@ -12,13 +12,12 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from radiostats.settings import LOG_DIR
 from scraper.lib import http_get
 from scraper.models import Song, NormalizedSong, Tag
 
 log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler(
-    os.path.join(LOG_DIR, 'normalize.log'), bubble=True)
+    os.path.join(settings.LOG_DIR, 'normalize.log'), bubble=True)
 logbook.StreamHandler(sys.stdout).push_thread()
 
 
