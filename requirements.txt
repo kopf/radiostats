@@ -6,10 +6,18 @@ django-countries==3.4.1
 django-suit==0.2.19
 #gevent==1.1.1
 #greenlet==0.4.10
-Logbook
+Logbook==1.1.0
 python-dateutil==2.5.3
 pytz
-requests
+requests==2.20.0
 simplejson==3.8.2
 elasticsearch==5.0.0
 mysqlclient
+
+# Testing dependencies (compatible with Python 2.7 and 3.x)
+pytest>=3.0.0,<4.0.0
+pytest-django>=3.0.0,<4.0.0
+pytest-cov>=2.5.0,<3.0.0
+mock>=2.0.0;python_version<'3'
+six>=1.10.0
+PyYAML==3.11

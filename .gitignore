@@ -2,3 +2,5 @@ radiostats/settings/auth.py
 radiostats/settings/__init__.py
 radiostats/db.sqlite3
 **/*.pyc
+.coverage
+htmlcov/
