@@ -6,7 +6,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR"
-DOCKER_IMAGE="${1:-python:2.7}"
+DOCKER_IMAGE="${1:-python:3.12}"
 PYTEST_ARGS="${2:---verbose --cov=scraper --cov-report=html}"
 
 echo "=========================================="
