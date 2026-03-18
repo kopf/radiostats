@@ -2,7 +2,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "pandas",
+#     "polars",
 #     "plotly",
 # ]
 # ///
@@ -11,9 +11,23 @@ import argparse
 import sqlite3
 import sys
 from pathlib import Path
-import pandas as pd
+import polars as pl
 import plotly.express as px
 import plotly.graph_objects as go
+
+def fetch_polars(query: str, conn: sqlite3.Connection, params: tuple = ()) -> pl.DataFrame:
+    """Helper to safely execute parameterized SQLite queries and return a Polars DataFrame."""
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    cols = [desc[0] for desc in cursor.description]
+    data = cursor.fetchall()
+    
+    if not data:
+        # Return empty dataframe with correct column names (as strings to avoid type issues)
+        schema = {col: pl.String for col in cols}
+        return pl.DataFrame(schema=schema)
+        
+    return pl.DataFrame(data, schema=cols, orient="row")
 
 def main():
     parser = argparse.ArgumentParser(description="Visualize data holes in radio station scraper database.")
@@ -34,7 +48,6 @@ def main():
         print(f"Error: Database file '{args.db_path}' not found.")
         sys.exit(1)
 
-    # Parse output filename to inject graph types later
     out_path = Path(args.output)
     out_dir = out_path.parent
     out_stem = out_path.stem
@@ -63,14 +76,19 @@ def main():
     WHERE {station_filter}
     GROUP BY s.name
     """
-    first_play_df = pd.read_sql_query(first_play_query, conn, params=query_params)
+    first_play_df = fetch_polars(first_play_query, conn, query_params)
     
-    if first_play_df.empty:
+    if first_play_df.is_empty():
         print("No station data found matching your criteria. Exiting.")
         sys.exit(0)
         
-    first_play_df['earliest_time'] = pd.to_datetime(first_play_df['earliest_time'])
-    first_play_df['hover_time_str'] = first_play_df['earliest_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    # Convert SQLite string timestamps to Polars Datetime
+    first_play_df = first_play_df.with_columns(
+        pl.col("earliest_time").str.to_datetime(strict=False)
+    ).with_columns(
+        pl.col("earliest_time").dt.strftime('%Y-%m-%d %H:%M:%S').alias("hover_time_str"),
+        pl.col("earliest_time").dt.date().alias("earliest_date")
+    )
 
     print(f"Calculating total hours of silence (gaps >= {args.gap_threshold}h) per station...")
     gap_summary_query = f"""
@@ -90,15 +108,16 @@ def main():
     WHERE (julianday(next_time) - julianday(time)) * 24 >= ? AND next_time IS NOT NULL
     GROUP BY station_name
     """
-    gap_summary_df = pd.read_sql_query(gap_summary_query, conn, params=query_params + (args.gap_threshold,))
-    gap_dict = gap_summary_df.set_index('station_name')['total_gap_hours'].to_dict()
-
-    def format_station_label(name):
-        gaps = gap_dict.get(name, 0.0)
-        return f"{name} ({gaps:.1f}h silence)"
-
-    first_play_df['station_name'] = first_play_df['station_name'].apply(format_station_label)
-    first_play_df['earliest_date'] = first_play_df['earliest_time'].dt.normalize()
+    gap_summary_df = fetch_polars(gap_summary_query, conn, query_params + (args.gap_threshold,))
+    if gap_summary_df.is_empty():
+        gap_summary_df = pl.DataFrame({"station_name": [], "total_gap_hours": []}, schema={"station_name": pl.String, "total_gap_hours": pl.Float64})
+    
+    # Merge gap summary into first_play_df and generate formatted labels using Polars expressions
+    first_play_df = first_play_df.join(gap_summary_df, on="station_name", how="left").with_columns(
+        pl.col("total_gap_hours").fill_null(0.0)
+    ).with_columns(
+        (pl.col("station_name") + " (" + pl.col("total_gap_hours").round(1).cast(pl.String) + "h silence)").alias("station_label")
+    )
 
     # --- 2. Fetch and Generate GANTT Chart ---
     print(f"\n[1/3] Fetching exact gaps for Gantt chart...")
@@ -120,27 +139,28 @@ def main():
     FROM PlayTimes
     WHERE gap_hours >= ? AND next_time IS NOT NULL
     """
-    gantt_df = pd.read_sql_query(gantt_query, conn, params=query_params + (args.gap_threshold,))
+    gantt_df = fetch_polars(gantt_query, conn, query_params + (args.gap_threshold,))
     
-    if not gantt_df.empty:
-        gantt_df['start_time'] = pd.to_datetime(gantt_df['start_time'])
-        gantt_df['end_time'] = pd.to_datetime(gantt_df['end_time'])
-        gantt_df['station_name'] = gantt_df['station_name'].apply(format_station_label)
+    if not gantt_df.is_empty():
+        gantt_df = gantt_df.with_columns(
+            pl.col("start_time").str.to_datetime(strict=False),
+            pl.col("end_time").str.to_datetime(strict=False),
+        ).join(first_play_df.select("station_name", "station_label"), on="station_name", how="left")
         
         print("      Generating Gantt chart...")
         fig_gantt = px.timeline(
-            gantt_df, x_start="start_time", x_end="end_time", y="station_name", 
+            gantt_df, x_start="start_time", x_end="end_time", y="station_label", 
             color="gap_hours", hover_data=["gap_hours"],
             title=f"Scraper Data Holes (Gaps > {args.gap_threshold} Hours)",
-            labels={"station_name": "Station", "gap_hours": "Gap Duration (Hours)"},
+            labels={"station_label": "Station", "gap_hours": "Gap Duration (Hours)"},
             color_continuous_scale="Reds"
         )
         fig_gantt.update_yaxes(autorange="reversed")
 
         fig_gantt.add_trace(go.Scatter(
-            x=first_play_df['earliest_time'], y=first_play_df['station_name'],
+            x=first_play_df["earliest_time"], y=first_play_df["station_label"],
             mode='markers', marker=dict(color='#00FF00', size=14, symbol='line-ns', line=dict(width=4, color='#00FF00')),
-            name='Earliest Play', customdata=first_play_df['hover_time_str'],
+            name='Earliest Play', customdata=first_play_df["hover_time_str"],
             hovertemplate="<b>%{y}</b><br>First Play: %{customdata}<extra></extra>"
         ))
         
@@ -163,31 +183,39 @@ def main():
     GROUP BY s.name, play_date
     HAVING play_date IS NOT NULL
     """
-    daily_df = pd.read_sql_query(daily_query, conn, params=query_params)
+    daily_df = fetch_polars(daily_query, conn, query_params)
     
-    if not daily_df.empty:
-        daily_df['play_date'] = pd.to_datetime(daily_df['play_date'])
-        daily_df['station_name'] = daily_df['station_name'].apply(format_station_label)
+    if not daily_df.is_empty():
+        daily_df = daily_df.with_columns(
+            pl.col("play_date").str.to_date(strict=False)
+        )
         
-        # Create continuous date grid
-        all_dates = pd.date_range(start=daily_df['play_date'].min(), end=daily_df['play_date'].max())
-        stations = daily_df['station_name'].unique()
-        idx = pd.MultiIndex.from_product([stations, all_dates], names=['station_name', 'play_date'])
-        daily_df = daily_df.set_index(['station_name', 'play_date']).reindex(idx, fill_value=0).reset_index()
+        # Create continuous date grid using Polars
+        min_date = daily_df["play_date"].min()
+        max_date = daily_df["play_date"].max()
+        dates_df = pl.DataFrame({"play_date": pl.date_range(min_date, max_date, "1d", eager=True)})
+        stations_df = daily_df.select("station_name").unique()
+        
+        grid_df = stations_df.join(dates_df, how="cross")
+        
+        # Reindex and join the labels
+        daily_df = grid_df.join(daily_df, on=["station_name", "play_date"], how="left").with_columns(
+            pl.col("play_count").fill_null(0)
+        ).join(first_play_df.select("station_name", "station_label"), on="station_name", how="left")
 
         # --- Generate Line Chart ---
         print("      Generating Line chart...")
         fig_line = px.line(
-            daily_df, x="play_date", y="play_count", color="station_name",
+            daily_df, x="play_date", y="play_count", color="station_label",
             title="Daily Play Counts per Station (Drops indicate holes)",
-            labels={"play_date": "Date", "play_count": "Songs Scraped", "station_name": "Station"}
+            labels={"play_date": "Date", "play_count": "Songs Scraped", "station_label": "Station"}
         )
         
-        first_play_merged = pd.merge(first_play_df, daily_df, on=['station_name', 'earliest_date'])
+        first_play_merged = first_play_df.join(daily_df, left_on=["station_name", "earliest_date"], right_on=["station_name", "play_date"])
         fig_line.add_trace(go.Scatter(
-            x=first_play_merged['earliest_date'], y=first_play_merged['play_count'],
+            x=first_play_merged["earliest_date"], y=first_play_merged["play_count"],
             mode='markers', marker=dict(color='#00FF00', size=10, symbol='diamond'),
-            name='Earliest Play', customdata=first_play_merged['hover_time_str'],
+            name='Earliest Play', customdata=first_play_merged["hover_time_str"],
             hovertemplate="<b>%{x|%Y-%m-%d}</b><br>First Play: %{customdata}<br>Play Count: %{y}<extra></extra>"
         ))
         
@@ -197,18 +225,25 @@ def main():
 
         # --- Generate Heatmap ---
         print("      Generating Heatmap...")
-        pivot_df = daily_df.pivot(index="station_name", columns="play_date", values="play_count")
+        # Polars pivot
+        pivot_df = daily_df.pivot(index="station_label", on="play_date", values="play_count")
+        
+        # Plotly Express heatmap takes the 2D values separately when using a pivoted DataFrame without a native pandas index
+        z_data = pivot_df.drop("station_label").to_numpy()
+        x_data = pivot_df.drop("station_label").columns
+        y_data = pivot_df["station_label"].to_list()
         
         fig_heatmap = px.imshow(
-            pivot_df, title="Daily Play Counts Heatmap (Dark areas indicate holes)",
+            z_data, x=x_data, y=y_data,
+            title="Daily Play Counts Heatmap (Dark areas indicate holes)",
             labels=dict(x="Date", y="Station", color="Songs Scraped"),
             aspect="auto", color_continuous_scale="Viridis"
         )
         
         fig_heatmap.add_trace(go.Scatter(
-            x=first_play_df['earliest_date'], y=first_play_df['station_name'],
+            x=first_play_df["earliest_date"], y=first_play_df["station_label"],
             mode='markers', marker=dict(color='#00FF00', size=14, symbol='line-ns', line=dict(width=4, color='#00FF00')),
-            name='Earliest Play', customdata=first_play_df['hover_time_str'],
+            name='Earliest Play', customdata=first_play_df["hover_time_str"],
             hovertemplate="<b>%{y}</b><br>First Play: %{customdata}<extra></extra>"
         ))
         
