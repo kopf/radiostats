@@ -17,13 +17,14 @@ class Command(BaseCommand):
     eachother, leaving just the first Play object."""
 
     help = 'Remove mistakenly duplicated plays of tracks'
-    deleted = {}
-    to_delete_ids = []
 
     def handle(self, *args, **options):
+        deleted = {}
+        to_delete_ids = []
+        
         for station in Station.objects.all():
             log.info(u'Scanning {0}'.format(station.name))
-            self.deleted[station.name] = 0
+            deleted[station.name] = 0
             for play in Play.objects.filter(station=station):
                 duplicates = Play.objects.filter(
                     song=play.song, station=play.station,
@@ -36,12 +37,12 @@ class Command(BaseCommand):
                     for duplicate in duplicates:
                         log.info(u'Duplicate: {0}'.format(
                             ' '.join([duplicate.song.title, duplicate.time.strftime('%Y-%m-%d %H:%M:%S')])))
-                        self.to_delete_ids.append(duplicate.id)
-                        self.deleted[station.name] += 1
+                        to_delete_ids.append(duplicate.id)
+                        deleted[station.name] += 1
         log.info('Deleting...')
-        Play.objects.filter(id__in=self.to_delete_ids).delete()
+        Play.objects.filter(id__in=to_delete_ids).delete()
         log.info('==============')
         log.info('Report:')
-        for station_name, deleted_count in self.deleted.iteritems():
+        for station_name, deleted_count in deleted.iteritems():
             log.info('{0}: {1} deleted'.format(station_name, deleted_count))
         log.info('==============')
