@@ -3,7 +3,7 @@
 # requires-python = ">=3.10"
 # dependencies = [
 #     "polars",
-#     "plotly",
+#     "plotly[express]",
 # ]
 # ///
 
