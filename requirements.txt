@@ -9,8 +9,8 @@ python-dateutil>=2.8.0
 pytz>=2024.1
 requests>=2.31.0
 simplejson>=3.19.0
-elasticsearch>=8.10.0
-mysqlclient>=2.2.0
+#elasticsearch>=8.10.0
+#mysqlclient>=2.2.0
 
 # Testing dependencies (Python 3.12+)
 pytest>=8.0.0
