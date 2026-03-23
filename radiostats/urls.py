@@ -6,5 +6,5 @@ urlpatterns = [
     # re_path(r'^$', 'radiostats.views.home', name='home'),
     # re_path(r'^blog/', include('blog.urls')),
 
-    re_path(r'^admin/', include(admin.site.urls)),
+    re_path(r'^admin/', admin.site.urls),
 ]
