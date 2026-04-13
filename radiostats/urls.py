@@ -1,10 +1,10 @@
-from django.conf.urls import patterns, include, url
 from django.contrib import admin
+from django.urls import include, re_path
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
-    # url(r'^$', 'radiostats.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+    # re_path(r'^$', 'radiostats.views.home', name='home'),
+    # re_path(r'^blog/', include('blog.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
-)
+    re_path(r'^admin/', admin.site.urls),
+]

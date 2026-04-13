@@ -1,0 +1,14 @@
+# Test configuration (used by pytest-django and conftest.py)
+# Configure the test database and Django settings
+
+# Django settings module for testing
+DJANGO_SETTINGS_MODULE=radiostats.settings.dev
+
+# Test database backend (SQLite in memory is default in conftest.py)
+# You can override by setting these:
+# TEST_DB_ENGINE=django.db.backends.sqlite3
+# TEST_DB_NAME=:memory:
+
+# API keys (optional, for test mocking)
+# LASTFM_API_KEY=test-api-key
+# ELASTICSEARCH_HOST=localhost:9200

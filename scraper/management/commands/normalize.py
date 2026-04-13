@@ -2,7 +2,7 @@
 from datetime import datetime
 import logbook
 from simplejson.decoder import JSONDecodeError
-from urllib import quote_plus
+from urllib.parse import quote_plus
 import os
 import sys
 
@@ -12,13 +12,12 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from radiostats.settings import LOG_DIR
 from scraper.lib import http_get
 from scraper.models import Song, NormalizedSong, Tag
 
 log = logbook.Logger()
 FILE_LOGGER = logbook.FileHandler(
-    os.path.join(LOG_DIR, 'normalize.log'), bubble=True)
+    os.path.join(settings.LOG_DIR, 'normalize.log'), bubble=True)
 logbook.StreamHandler(sys.stdout).push_thread()
 
 
@@ -93,7 +92,7 @@ class Command(BaseCommand):
                 return None
         if isinstance(resp, dict):
             if (resp.get('results', {}).get('trackmatches')
-                    and not isinstance(resp['results']['trackmatches'], basestring)):
+                    and not isinstance(resp['results']['trackmatches'], str)):
                 result = resp['results']['trackmatches']['track']
                 if isinstance(result, list) and result:
                     result = result[0]
@@ -171,8 +170,8 @@ class Command(BaseCommand):
 
     def normalize(self, track):
         """Using beets and last.fm's API, normalise the artist and track title"""
-        artist = unicode(track.artist)
-        title = unicode(track.title)
+        artist = str(track.artist)
+        title = str(track.title)
         res = tag_item(FakeBeetsItem(artist, title),
                        search_artist=artist, search_title=title)
         if res and res[0] and res[0][0].distance.distance < 0.35:

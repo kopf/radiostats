@@ -30,7 +30,7 @@ def http_req(url, retries=10, user_agent=USER_AGENT, cookies=None, method='get',
             retval.raise_for_status()
         except Exception as e:
             time.sleep(1)
-            log.error(e.message)
+            log.error(str(e))
             return http_get(url, retries=retries-1)
         else:
             return retval
