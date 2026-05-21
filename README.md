@@ -8,6 +8,15 @@ amount of data from as many sources as possible. This will be followed by
 the development of a flexible web application which enables users to perform
 their own analyses on the collected data.
 
+## Usage
+
+```
+# Run tests
+uv run pytest 
+# Run scraper
+uv run python manage.py scrape --help
+```
+
 # Contributing
 
 Are you interested in the project? Would you like to be able to analyse data from
