@@ -14,6 +14,7 @@ dependencies = [
     "pytz>=2024.1",
     "requests>=2.31.0",
     "simplejson>=3.19.0",
+    "tqdm>=4.67.3",
 ]
 
 [dependency-groups]

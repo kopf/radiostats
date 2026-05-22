@@ -12,6 +12,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from tqdm import tqdm
+
 from scraper.lib import http_get
 from scraper.models import Song, NormalizedSong, Tag
 
@@ -37,15 +39,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         FILE_LOGGER.push_thread()
-        i = 0
         tracks = Song.objects.filter(last_scraped=None)
-        for track in tracks:
+        pbar = tqdm(tracks)
+        for track in pbar:
+            pbar.set_description(f"Normalizing: {track.artist} - {track.title}")
             self.normalize(track)
             track.last_scraped = timezone.now()
             track.save()
-            i += 1
-            if i % 10 == 0:
-                log.info('Done {0} of {1}...'.format(i, len(tracks)))
 
     def _get(self, url):
         """HTTP GET and decode JSON"""
