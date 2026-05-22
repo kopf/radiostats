@@ -22,7 +22,6 @@ class ScraperBase(object):
 
 class GenericScraper(ScraperBase):
     cookies = {}
-    terminate_early = False
     utc_datetimes = False
 
     def time_to_datetime(self, text_time, split_char):
@@ -48,7 +47,6 @@ class GenericScraper(ScraperBase):
 
 
 class GenericLastFMScraper(ScraperBase):
-    terminate_early = False
     base_url = ('http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks'
                 '&user={user}&api_key={api_key}&from={start}&to={end}&format=json&limit=200')
     utc_datetimes = True
@@ -154,7 +152,6 @@ class SWR3Scraper(GenericScraper):
 
 class KEXPScraper(ScraperBase):
     cookies = {}
-    terminate_early = False
     utc_datetimes = False # The responses make it look like UTC time, but it's actually local
 
     def __init__(self, date):

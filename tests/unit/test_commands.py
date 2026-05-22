@@ -82,7 +82,6 @@ class GenericRunnerTests(TestCase):
         mock_scraper_instance = mock.MagicMock()
         mock_scraper_instance.tracks = [('Artist', 'Title', datetime(2020, 1, 1, 12, 0))]
         mock_scraper_instance.utc_datetimes = False
-        mock_scraper_instance.terminate_early = False
         mock_scrapers.TestScraper.return_value = mock_scraper_instance
 
         mock_song_get_or_create.return_value = (mock.MagicMock(), True)
@@ -128,7 +127,6 @@ class GenericRunnerTests(TestCase):
         """Test that the runner terminates early if all tracks are duplicates."""
         mock_scraper_instance = mock.MagicMock()
         mock_scraper_instance.tracks = [('Artist', 'Title', datetime(2020, 1, 1, 12, 0))]
-        mock_scraper_instance.terminate_early = False
         mock_scrapers.TestScraper.return_value = mock_scraper_instance
 
         mock_play_get_or_create.return_value = (mock.MagicMock(), False) # Not created (duplicate)

@@ -46,7 +46,6 @@ class TestGenericScraper(object):
         assert scraper.date == test_date
         assert scraper.tracks == []
         assert scraper.cookies == {}
-        assert scraper.terminate_early is False
         assert scraper.utc_datetimes is False
 
     def test_time_to_datetime_with_seconds(self):
@@ -154,7 +153,6 @@ class TestGenericLastFMScraper(object):
         assert scraper.start.date() == test_date
         assert scraper.end.date() == test_date
         assert scraper.utc_datetimes is True
-        assert scraper.terminate_early is False
 
     def test_lastfm_scraper_start_end_times(self):
         """Test that start and end times span full day."""
