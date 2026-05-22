@@ -50,14 +50,19 @@ class Command(BaseCommand):
     def _get(self, url):
         """HTTP GET and decode JSON"""
         try:
-            resp = http_get(url).json()
+            resp = http_get(url)
+            if not resp or not resp.ok:
+                return {}
+            return resp.json()
         except JSONDecodeError:
             try:
-                resp = http_get(url).json()
+                resp = http_get(url)
+                if not resp or not resp.ok:
+                    return {}
+                return resp.json()
             except JSONDecodeError:
                 log.error('Error occurred twice trying to parse response from {0}'.format(url))
-                return None
-        return resp
+                return {}
 
     def getinfo(self, encoded_artist, encoded_title):
         """Get metadata from last.fm using the track.getinfo method"""
@@ -83,10 +88,16 @@ class Command(BaseCommand):
             artist=encoded_artist, title=encoded_title,
             api_key=settings.LASTFM_API_KEY, method='track.search')
         try:
-            resp = http_get(url).json()
+            resp = http_get(url)
+            if not resp or not resp.ok:
+                return None
+            resp = resp.json()
         except JSONDecodeError:
             try:
-                resp = http_get(url).json()
+                resp = http_get(url)
+                if not resp or not resp.ok:
+                    return None
+                resp = resp.json()
             except JSONDecodeError as e:
                 log.error('Error occurred twice trying to parse response from {0}'.format(url))
                 return None
@@ -109,7 +120,10 @@ class Command(BaseCommand):
         url = (u'http://ws.audioscrobbler.com/2.0/?method=track.getInfo'
                u'&mbid={mbid}&api_key={api_key}&format=json')
         url = url.format(mbid=mbid, api_key=settings.LASTFM_API_KEY)
-        resp = http_get(url).json()
+        resp = http_get(url)
+        if not resp or not resp.ok:
+            return []
+        resp = resp.json()
         if isinstance(resp, dict):
             return resp.get('track', {}).get('toptags')
         return []

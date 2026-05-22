@@ -23,21 +23,32 @@ def http_req(url, retries=10, user_agent=USER_AGENT, cookies=None, method='get',
     if cookies is None:
         cookies = {}
     requests_func = getattr(requests, method)
-    if retries:
+    
+    for attempt in range(retries + 1):
         try:
             retval = requests_func(
                 url, headers={'User-Agent': user_agent}, cookies=cookies, **kwargs)
             retval.raise_for_status()
-        except Exception as e:
-            time.sleep(1)
-            log.error(str(e))
-            return http_get(url, retries=retries-1)
-        else:
             return retval
-    else:
-        # Try one last time, if it fails, it fails
-        return requests_func(
-            url, headers={'User-Agent': user_agent}, cookies=cookies)
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                # Don't retry on 404
+                return retval
+            if attempt < retries:
+                time.sleep(1)
+                continue
+            log.error(f"Final attempt failed for {url}: {e}")
+            return retval
+        except Exception as e:
+            if attempt < retries:
+                time.sleep(1)
+                continue
+            log.error(f"Final attempt failed for {url}: {e}")
+            break
+
+    # Try one last time without raise_for_status if we exhausted retries or broke early
+    return requests_func(
+        url, headers={'User-Agent': user_agent}, cookies=cookies, **kwargs)
 
 
 def create_date_range(from_date, to_date=None):
