@@ -6,4 +6,14 @@ DB = {
     'host': '',     # database host
 }
 
+BYTEFM_DB = {
+    # Used for the ByteFMScraper which grabs tracks directly from mairlistlog
+
+    'dbname': '',
+    'user': '',
+    'password': '',
+    'host': '',
+    'port': '5432',
+}
+
 SECRET_KEY = '' # your django SECRET_KEY

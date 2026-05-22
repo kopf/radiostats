@@ -8,6 +8,7 @@ from dateutil import parser as dateutil_parser
 from django.conf import settings
 import logbook
 import requests
+import psycopg2
 
 from scraper.lib import http_get, http_post
 
@@ -221,8 +222,31 @@ class FluxFMWorldwideScraper(FluxFMScraper):
     cookies = {'mfmloc': 'world'}
 
 
-class ByteFMScraper(GenericLastFMScraper):
-    username = 'ByteFM'
+class ByteFMScraper(ScraperBase):
+    utc_datetimes = False
+
+    def scrape(self):
+        try:
+            conn = psycopg2.connect(**settings.BYTEFM_DB)
+        except Exception as e:
+            self.log.error(f"Could not connect to ByteFM database: {e}")
+            raise
+
+        with conn:
+            with conn.cursor() as cur:
+                query = """
+                    SELECT artist, tracktitle, curhour, curmin, cursec
+                    FROM mairlistlog
+                    WHERE curyear = %s AND curmonth = %s AND curday = %s
+                    ORDER BY curhour, curmin, cursec
+                """
+                cur.execute(query, (self.date.year, self.date.month, self.date.day))
+                for row in cur.fetchall():
+                    artist, title, hour, minute, second = row
+                    dt = datetime(self.date.year, self.date.month, self.date.day,
+                                  hour, minute, second)
+                    self.tracks.append((artist, title, dt))
+        conn.close()
 
 
 class BBC1XtraScraper(GenericLastFMScraper):

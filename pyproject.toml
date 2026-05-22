@@ -15,6 +15,7 @@ dependencies = [
     "requests>=2.31.0",
     "simplejson>=3.19.0",
     "tqdm>=4.67.3",
+    "psycopg2-binary>=2.9.9",
 ]
 
 [dependency-groups]
