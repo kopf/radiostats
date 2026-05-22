@@ -42,7 +42,8 @@ class Command(BaseCommand):
         tracks = Song.objects.filter(last_scraped=None)
         pbar = tqdm(tracks)
         for track in pbar:
-            pbar.set_description(f"Normalizing: {track.artist} - {track.title}"[:55])
+            description = f"Normalizing: {track.artist} - {track.title}"
+            pbar.set_description(f"{description:<60}"[:60])
             self.normalize(track)
             track.last_scraped = timezone.now()
             track.save()
