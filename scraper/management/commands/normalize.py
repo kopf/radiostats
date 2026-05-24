@@ -124,9 +124,12 @@ class Command(BaseCommand):
         resp = http_get(url)
         if not resp or not resp.ok:
             return []
-        resp = resp.json()
+        try:
+            resp = resp.json()
+        except JSONDecodeError:
+            pass
         if isinstance(resp, dict):
-            return resp.get('track', {}).get('toptags')
+            return resp.get('track', {}).get('toptags', [])
         return []
 
     def extract_tags(self, toptags):
