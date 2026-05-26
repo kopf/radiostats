@@ -15,7 +15,7 @@ from django.db import transaction
 import subprocess
 
 from scraper import scrapers
-from scraper.lib import create_date_range, utc_datetime
+from scraper.lib import create_date_range, utc_datetime, is_news
 from scraper.models import Station, Song, Play
 
 log = logbook.Logger('runner')
@@ -113,6 +113,10 @@ class GenericRunner(object):
                 title = html.unescape(track[1])[:256].strip()
                 if not (artist and title):
                     continue
+
+                if is_news(artist, title):
+                    continue
+
                 try:
                     song, _ = Song.objects.get_or_create(
                         artist=artist, title=title)

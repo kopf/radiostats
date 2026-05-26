@@ -5,10 +5,27 @@ import time
 import logbook
 import requests
 
+import re
+
 log = logbook.Logger()
 
 USER_AGENT = ('Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 '
               '(KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.36')
+
+def is_news(artist, title):
+    # SWR3 news
+    if artist == 'SWR3 Nachrichten':
+        return True
+
+    # ByteFM news
+    if artist == 'ByteFM' and title == 'Nachrichten':
+        return True
+
+    # Time-based news (DRadio etc)
+    if re.match(r'^\d+ Uhr$', artist) and 'Nachrichten' in title:
+        return True
+
+    return False
 
 def http_get(*args, **kwargs):
     kwargs['method'] = 'get'
