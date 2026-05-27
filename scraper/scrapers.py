@@ -78,7 +78,7 @@ class GenericLastFMScraper(ScraperBase):
         # break.
         first_track = {}
         for page in range(1, 99999):
-            self.log.info('Scraping page %s...' % page)
+            self.log.debug('Scraping page %s...' % page)
             tracks = self._get_tracks(url, page)
             if not tracks:
                 break
